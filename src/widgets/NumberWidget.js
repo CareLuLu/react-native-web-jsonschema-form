@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import TextWidget from './TextWidget';
 
 /* eslint no-param-reassign: 0 */
@@ -121,8 +122,10 @@ const mask = settings => value => maskValue(value, Object.assign({
   allowEmpty: false,
 }, settings));
 
+const textParser = value => (parseFloat(value) || null);
+
 const NumberWidget = props => (
-  <TextWidget {...props} keyboardType="number-pad" mask={mask(props)} />
+  <TextWidget {...props} keyboardType="number-pad" mask={mask(props)} textParser={textParser} />
 );
 
 export default NumberWidget;

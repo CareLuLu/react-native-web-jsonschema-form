@@ -1,19 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
-import { Text, Link } from 'react-native-web-ui-components';
+import Text from 'react-native-web-ui-components/Text';
+import Link from 'react-native-web-ui-components/Link';
 
 const styles = StyleSheet.create({
   remove: {
     paddingLeft: 10,
-  },
-  offsetBottom: {
-    paddingBottom: 10,
+    paddingTop: 10,
   },
   hidden: {
     opacity: 0,
+    paddingTop: 0,
   },
   alignRight: {
+    paddingTop: 0,
     width: '100%',
     textAlign: 'right',
   },
@@ -21,7 +22,6 @@ const styles = StyleSheet.create({
 
 const RemoveHandle = ({
   onRemovePress,
-  uiSchema,
   titleOnly,
   screenType,
 }) => {
@@ -34,7 +34,6 @@ const RemoveHandle = ({
         style={[
           styles.remove,
           titleOnly ? styles.hidden : null,
-          uiSchema['ui:inline'] ? null : styles.offsetBottom,
           screenType === 'xs' ? styles.alignRight : null,
         ]}
       >
@@ -49,7 +48,6 @@ const RemoveHandle = ({
       style={[
         styles.remove,
         titleOnly ? styles.hidden : null,
-        uiSchema['ui:inline'] ? null : styles.offsetBottom,
       ]}
     >
       Remove
@@ -59,7 +57,6 @@ const RemoveHandle = ({
 
 RemoveHandle.propTypes = {
   onRemovePress: PropTypes.func.isRequired,
-  uiSchema: PropTypes.shape().isRequired,
   titleOnly: PropTypes.bool.isRequired,
   screenType: PropTypes.string.isRequired,
 };

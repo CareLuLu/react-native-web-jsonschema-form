@@ -1,21 +1,25 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import {
-  get,
-  set,
   each,
   last,
   times,
   isArray,
 } from 'lodash';
 import {
-  withState,
   withProps,
   withHandlers,
+  withStateHandlers,
   compose,
 } from 'recompact';
-import { Screen, Button } from 'react-native-web-ui-components';
-import { ucfirst, titleize } from '../../../utils/string';
+import { titleize } from 'underscore.string';
+import Screen from 'react-native-web-ui-components/Screen';
+import Button from 'react-native-web-ui-components/Button';
+import {
+  getTitle,
+  getComponent,
+  FIELD_TITLE,
+} from '../../utils';
 import OrderHandle from './OrderHandle';
 import RemoveHandle from './RemoveHandle';
 import DraggableItem from './DraggableItem';
@@ -32,9 +36,17 @@ const styles = StyleSheet.create({
   },
 });
 
-const formatTitle = title => titleize(title).replace(/ies$/, 'y').replace(/s$/, '');
+const getItem = (schema) => {
+  let newItem = '';
+  if (schema.items.type === 'object') {
+    newItem = {};
+  } else if (schema.items.type === 'array') {
+    newItem = [];
+  }
+  return newItem;
+};
 
-const getField = type => `${ucfirst(type)}Field`;
+const formatTitle = title => titleize(title).replace(/ies$/, 'y').replace(/s$/, '');
 
 const iterateUiSchema = (uiSchema, i) => {
   const widgetProps = uiSchema['ui:widgetProps'] || {};
@@ -58,62 +70,40 @@ const adjustUiSchema = (uiSchema, i) => {
   return adjustedUiSchema;
 };
 
-const parser = value => value;
-
 const getProps = ({
   name,
+  value,
   schema,
   fields,
   uiSchema,
-  formData,
-  castValue,
-  formattedValues,
-  formatExpression,
-  arrayParser,
-  arrayValues,
-}) => { // eslint-disable-line
+}) => {
   const screenType = Screen.getType();
-  const expressionOptions = {
+  const title = getTitle(uiSchema['ui:title'] || FIELD_TITLE, {
     name,
+    value,
     key: last(name.split('.')),
-    value: castValue(formData[name], schema),
-  };
-  const title = `${formatExpression(uiSchema['ui:title'] || '%title%', expressionOptions)}`;
-
-  const defaultUiSchema = uiSchema['*'] || {};
+  });
   const propertySchema = schema.items;
-  const propertyUiSchema = Object.assign(
-    {},
-    defaultUiSchema,
-    uiSchema.items || {},
-    { '*': defaultUiSchema || uiSchema['*'] },
-  );
-  const { BaseField } = fields;
-  const PropertyField = fields[getField(propertySchema.type)];
-  const list = arrayValues || get(formattedValues, name) || [];
+  const propertyUiSchema = uiSchema.items;
+  const PropertyField = getComponent(propertySchema.type, 'Field', fields);
   const options = uiSchema['ui:options'] || {};
 
-  const baseFieldUiSchema = Object.assign({
-    'ui:titleProps': {},
-  }, uiSchema);
-  if (schema.items.type === 'object') {
-    baseFieldUiSchema['ui:titleProps'].style = [
-      styles.label,
-      screenType === 'xs' ? styles.labelXs : null,
-      baseFieldUiSchema['ui:titleProps'].style || null,
-    ];
-  }
+  let adjustedUiSchema = uiSchema;
+  const titleProps = uiSchema['ui:titleProps'] || {};
+  titleProps.style = [
+    styles.label,
+    screenType === 'xs' ? styles.labelXs : null,
+    titleProps.style || null,
+  ];
+  adjustedUiSchema = { ...uiSchema, 'ui:titleProps': titleProps };
 
   const extraProps = {
-    list,
     title,
     screenType,
     propertySchema,
     propertyUiSchema,
     PropertyField,
-    BaseField,
-    baseFieldUiSchema,
-    arrayParser: arrayParser || parser,
+    uiSchema: adjustedUiSchema,
     addLabel: options.addLabel || `Add ${formatTitle(title)}`,
     addable: options.addable !== false,
     removable: options.removable !== false,
@@ -125,129 +115,137 @@ const getProps = ({
 };
 
 const onAddHandler = ({
-  list,
   name,
+  value,
   schema,
-  options,
-  arrayParser,
-  formattedValues,
+  onChange,
 }) => () => {
-  let newItem = '';
-  if (schema.items.type === 'object') {
-    newItem = { __: 'new' };
-  } else if (schema.items.type === 'array') {
-    newItem = [];
-  }
-  const newList = list.concat(list.length !== 0 ? [newItem] : [newItem, newItem]);
-  set(formattedValues, `${name}`.replace(/\.[0-9]+\./g, '[$1]'), arrayParser(newList));
-  options.onChangeFormatted(formattedValues, name);
-  options.onFocus('');
+  const newItem = getItem(schema);
+  const nextValue = value.concat(value.length !== 0 ? [newItem] : [newItem, newItem]);
+  onChange(nextValue, name);
 };
 
 const onRemoveHandler = ({
-  list,
   name,
-  options,
-  arrayParser,
-  formattedValues,
+  value,
+  onChange,
+  reorder,
+  errors,
 }) => (index) => {
-  const newList = list.filter((v, i) => (i !== index));
-  set(formattedValues, `${name}`.replace(/\.[0-9]+\./g, '[$1]'), arrayParser(newList));
-  options.onChangeFormatted(formattedValues, name);
+  const nextValue = value.filter((v, i) => (i !== index));
+  let nextErrors = errors;
+  if (errors) {
+    nextErrors = nextErrors.filter((v, i) => (i !== index));
+  }
+  onChange(nextValue, name, {
+    nextErrors: nextErrors || false,
+  });
+  setTimeout(reorder);
 };
 
-const onChangeHandler = ({
-  onChange,
-}) => (value, ...args) => onChange(value, ...args);
+const onItemRefHandler = ({ refs }) => (ref, index) => {
+  refs[index] = ref; // eslint-disable-line
+};
 
 const PropertyComponentHandler = topProps => innerProps => (
   <DraggableItem {...topProps} {...innerProps} />
 );
 
 const ArrayWidget = compose(
-  withState('dragging', 'setDragging', null),
+  withStateHandlers({
+    review: 0,
+    dragging: null,
+    refs: [],
+  }, {
+    setDragging: () => dragging => ({ dragging }),
+    reorder: ({ review }) => () => ({
+      review: review + 1,
+      dragging: null,
+      refs: [],
+    }),
+  }),
   withProps(getProps),
   withHandlers({
     onAdd: onAddHandler,
     onRemove: onRemoveHandler,
-    onChange: onChangeHandler,
+    onItemRef: onItemRefHandler,
   }),
   withHandlers({
     PropertyComponent: PropertyComponentHandler,
   }),
-)(({ arrayParser, arrayValues, ...props }) => { // Make sure array* is not passed through
+)((props) => {
   const {
-    list,
+    review,
     name,
+    value,
     title,
+    theme,
     addLabel,
     addable,
     onAdd,
     widgets,
     schema,
     uiSchema,
-    errorSchema,
-    screenType,
+    errors,
     dragging,
-    baseFieldUiSchema,
-    BaseField,
+    screenType,
     propertyUiSchema,
     PropertyComponent,
   } = props;
   const { LabelWidget } = widgets;
-  const hasError = isArray(errorSchema) && errorSchema.length && !errorSchema.hidden;
+  const hasError = isArray(errors) && errors.length > 0 && !errors.hidden;
   return (
     <React.Fragment>
       {uiSchema['ui:title'] !== false ? (
-        <LabelWidget hasError={hasError} auto={uiSchema['ui:inline']} {...baseFieldUiSchema['ui:titleProps']}>
+        <LabelWidget hasError={hasError} auto={uiSchema['ui:inline']} {...uiSchema['ui:titleProps']}>
           {title}
         </LabelWidget>
       ) : null}
-      {schema.items.type === 'object' && baseFieldUiSchema.items['ui:title'] !== false && screenType !== 'xs' ? (
-        <BaseField
+      {schema.items.type === 'object' && uiSchema.items['ui:title'] !== false && screenType !== 'xs' ? (
+        <PropertyComponent
           {...props}
-          key={`${name}__title`}
-          uiSchema={baseFieldUiSchema}
+          propertyName={`${name}.title`}
+          propertyValue={getItem(schema)}
+          propertyErrors={{}}
           propertyUiSchema={adjustUiSchema(propertyUiSchema, -1)}
-          widget={PropertyComponent}
           index={-1}
           zIndex={1}
           titleOnly
         />
       ) : null}
-      {!list.length ? (
-        <BaseField
+      {!value.length ? (
+        <PropertyComponent
           {...props}
-          key={0}
-          uiSchema={baseFieldUiSchema}
+          key={`${review}.${name}.0`}
+          propertyName={`${name}.0`}
+          propertyValue={getItem(schema)}
+          propertyErrors={errors && errors[0]}
           propertyUiSchema={adjustUiSchema(propertyUiSchema, 0)}
-          widget={PropertyComponent}
           index={0}
           zIndex={1}
           noTitle={screenType !== 'xs'}
         />
       ) : null}
-      {times(list.length, index => (
-        <BaseField
+      {times(value.length, index => (
+        <PropertyComponent
           {...props}
-          zIndex={dragging === index ? list.length : (list.length - index)}
-          key={index}
-          uiSchema={baseFieldUiSchema}
+          key={`${review}.${name}.${index}`}
+          propertyName={`${name}.${index}`}
+          propertyValue={value[index]}
+          propertyErrors={errors && errors[index]}
           propertyUiSchema={adjustUiSchema(propertyUiSchema, index)}
-          widget={PropertyComponent}
           index={index}
+          zIndex={dragging === index ? value.length : (value.length - index)}
           noTitle={screenType !== 'xs'}
         />
       ))}
       {addable ? (
-        <Button auto small flat={false} radius type="pink" onPress={onAdd}>
+        <Button auto small flat={false} radius type={theme.colors.primary} onPress={onAdd}>
           {addLabel}
         </Button>
       ) : null}
     </React.Fragment>
   );
 });
-
-ArrayWidget.custom = true;
 
 export default ArrayWidget;

@@ -2,12 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { withProps, withHandlers, compose } from 'recompact';
-import {
-  View,
-  Rating,
-  StylePropType,
-  createDomStyle,
-} from 'react-native-web-ui-components';
+import View from 'react-native-web-ui-components/View';
+import Rating from 'react-native-web-ui-components/Rating';
+import StylePropType from 'react-native-web-ui-components/StylePropType';
+import createDomStyle from 'react-native-web-ui-components/createDomStyle';
 import { withTheme } from 'react-native-web-ui-components/Theme';
 import { Helmet, style } from 'react-native-web-ui-components/Helmet';
 
@@ -58,11 +56,10 @@ const RatingWidget = compose(
           });
         }
       },
-      onPress: ({ onChange, onFocus }) => (evt) => {
+      onPress: ({ name, onChange }) => (evt) => {
         const x = evt.nativeEvent.pageX - state.pageX();
         const value = Math.min(5, Math.ceil(((x / 94) * 5) / 0.5) * 0.5);
-        onFocus();
-        onChange(value);
+        onChange(value, name);
       },
     };
   }),
@@ -104,6 +101,8 @@ const RatingWidget = compose(
       </View>
     );
   }
+  const fullCss = createDomStyle([styles.full, fullStyle]);
+  const emptyCss = createDomStyle([styles.empty, emptyStyle]);
   return (
     <TouchableOpacity
       ref={onTouchableMounted}
@@ -123,20 +122,20 @@ const RatingWidget = compose(
               cursor: pointer;
             }
             .${id}:hover .Rating__group {
-              ${createDomStyle(fullStyle)}
+              ${fullCss}
             }
             .${id}:hover .Rating {
               color: inherit;
             }
             .${id} .Rating__group:hover,
             .${id} .Rating__group:hover ~ .Rating__group {
-              ${createDomStyle(emptyStyle)}
+              ${emptyCss}
             }
             .${id} .Rating:hover {
-              ${createDomStyle(fullStyle)}
+              ${fullCss}
             }
             ${Array(10).fill(0).map((v, i) => `.${id} .Rating__${(2 * i) + 1}:hover + .Rating__${2 * i}`).join(',')} {
-              ${createDomStyle(fullStyle)}
+              ${fullCss}
             }
           `}
         </style>
@@ -145,6 +144,7 @@ const RatingWidget = compose(
         disabled={disabled}
         readonly={readonly}
         hasError={hasError}
+        iconName={iconName}
         fullStyle={fullStyle}
         emptyStyle={emptyStyle}
         rating={parseFloat(value)}

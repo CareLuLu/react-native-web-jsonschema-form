@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withHandlers } from 'recompact';
-import { Select, StylePropType } from 'react-native-web-ui-components';
+import Select from 'react-native-web-ui-components/Select';
+import StylePropType from 'react-native-web-ui-components/StylePropType';
 
 const SelectWidget = withHandlers({
-  onWrappedChange: ({ onChange }) => value => onChange(value),
-  onWrappedFocus: ({ onFocus }) => () => onFocus(),
+  onWrappedChange: ({ name, onChange }) => value => onChange(value, name),
+  onWrappedFocus: ({ name, onFocus }) => () => onFocus(name),
 })(({
   schema,
   uiSchema,

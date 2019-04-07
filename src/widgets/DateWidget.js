@@ -2,7 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { withHandlers } from 'recompact';
-import { StylePropType, Datepicker, createDomStyle } from 'react-native-web-ui-components';
+import Datepicker from 'react-native-web-ui-components/Datepicker';
+import StylePropType from 'react-native-web-ui-components/StylePropType';
+import createDomStyle from 'react-native-web-ui-components/createDomStyle';
 
 const styles = StyleSheet.create({
   defaults: {
@@ -17,11 +19,8 @@ const styles = StyleSheet.create({
 });
 
 const DateWidget = withHandlers({
-  onWrappedFocus: ({ onFocus }) => () => onFocus(),
-  onWrappedChange: ({ onChange, onFocus }) => (value) => {
-    onFocus();
-    onChange(value);
-  },
+  onWrappedFocus: ({ name, onFocus }) => () => onFocus(name),
+  onWrappedChange: ({ name, onChange }) => value => onChange(value, name),
 })(({
   uiSchema,
   onChange,
@@ -46,7 +45,9 @@ const DateWidget = withHandlers({
   if (date && date.indexOf('T') >= 0) {
     date = date.split('T')[0].split('-');
     date = `${date[1]}/${date[2]}/${date[0]}`;
-    setTimeout(() => onChange(date, name, true));
+    setTimeout(() => onChange(date, name, {
+      silent: true,
+    }));
   }
   return (
     <React.Fragment>

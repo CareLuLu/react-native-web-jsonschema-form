@@ -8,6 +8,7 @@ import HiddenWidget from './HiddenWidget';
 import IntegerWidget from './IntegerWidget';
 import LabelWidget from './LabelWidget';
 import NumberWidget from './NumberWidget';
+import ObjectWidget from './ObjectWidget';
 import PasswordWidget from './PasswordWidget';
 import PhoneWidget from './PhoneWidget';
 import RadioWidget from './RadioWidget';
@@ -28,6 +29,7 @@ export default {
   IntegerWidget,
   LabelWidget,
   NumberWidget,
+  ObjectWidget,
   PasswordWidget,
   PhoneWidget,
   RadioWidget,

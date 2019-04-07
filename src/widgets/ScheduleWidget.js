@@ -1,17 +1,18 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import {
+  withState,
   withProps,
   withHandlers,
   compose,
 } from 'recompact';
 import {
   get,
-  set,
   find,
   times,
 } from 'lodash';
-import { Screen, Column } from 'react-native-web-ui-components';
+import Screen from 'react-native-web-ui-components/Screen';
+import Column from 'react-native-web-ui-components/Column';
 import ArrayWidget from './ArrayWidget';
 import CheckboxWidget from './CheckboxWidget';
 
@@ -42,50 +43,59 @@ const fillSchedule = (value, timesAttribute, dateAttribute) => {
   return schedule;
 };
 
-const setValueHandler = ({
-  name,
-  arrayParser,
-  formattedValues,
-}) => value => set(formattedValues, `${name}`.replace(/\.[0-9]+\./g, '[$1]'), arrayParser(value));
-
 const checkboxParserHandler = ({ dateAttribute, timesAttribute }) => value => value.map((v, i) => ({
   on: v[dateAttribute],
   day: days[i],
   times: v[timesAttribute],
-})).filter(v => (v.on && v.times.length)).map(v => ({
+})).filter(v => v.on).map(v => ({
   [dateAttribute]: v.day,
   [timesAttribute]: v.times,
 }));
 
 const dateParserHandler = ({ dateAttribute, timesAttribute }) => value => value
-  .filter(v => (v[dateAttribute] && v[timesAttribute].length));
+  .filter(v => (v[dateAttribute] || v[timesAttribute].length > 0));
 
 const onChangeHandler = ({
-  field,
+  name,
+  value,
   onChange,
-  arrayValues,
-}) => (value, ...args) => {
-  const path = args[0].split('.');
-  const [key] = path.splice(-1, 1);
-  const index = parseInt(path.splice(-1, 1)[0], 10);
-
-  arrayValues[index][key] = value;
-  field.cache = null;
-  field.arrayValues = arrayValues;
-  onChange(value, ...args);
+  scheduleParser,
+  dateAttribute,
+  timesAttribute,
+}) => (propertyValue, propertyName, params = {}) => {
+  if (propertyName !== name) {
+    const path = propertyName.split('.');
+    const [key] = path.splice(-1, 1);
+    const index = parseInt(path.splice(-1, 1)[0], 10);
+    value[index][key] = propertyValue;
+    onChange(scheduleParser(value), name, {
+      ...params,
+      update: [
+        `${name}.${index}.${dateAttribute}`,
+        `${name}.${index}.${timesAttribute}`,
+      ],
+    });
+  } else {
+    const update = [];
+    const length = Math.max(propertyValue.length, value.length);
+    for (let i = 0; i < length; i += 1) {
+      update.push(`${name}.${i}.${dateAttribute}`);
+      update.push(`${name}.${i}.${timesAttribute}`);
+    }
+    onChange(propertyValue, propertyName, {
+      ...params,
+      update,
+    });
+  }
 };
-
-const checkAllOnFocusHandler = ({ onFocus }) => () => onFocus('');
 
 const checkAllOnChangeHandler = ({
   name,
-  field,
-  options,
-  setValue,
+  onChange,
   dateAttribute,
   timesAttribute,
   propertyUiSchema,
-  formattedValues,
+  scheduleParser,
 }) => (checked) => {
   const { checkAll } = propertyUiSchema['ui:options'];
   if (checkAll) {
@@ -95,23 +105,19 @@ const checkAllOnChangeHandler = ({
     } else {
       checkAllValue = fillSchedule([], timesAttribute, dateAttribute);
     }
-    field.cache = null;
-    field.arrayValues = checkAllValue;
-    setValue(checkAllValue);
-    options.onChangeFormatted(formattedValues, name);
+    onChange(scheduleParser(checkAllValue), name);
   }
 };
 
 const CheckAll = compose(
   withHandlers({
-    onFocus: checkAllOnFocusHandler,
     onChange: checkAllOnChangeHandler,
   }),
 )(({
   name,
+  value,
   onFocus,
   onChange,
-  arrayValues,
   dateAttribute,
   timesAttribute,
   propertyUiSchema,
@@ -123,13 +129,13 @@ const CheckAll = compose(
   const length = (checkAll.value && checkAll.value.length) || 0;
   const checkAllValue = fillSchedule(checkAll.value || [], timesAttribute, dateAttribute);
   let checked = true;
-  if (checkAllValue.length > arrayValues.length) {
+  if (checkAllValue.length > value.length) {
     checked = false;
   } else {
     for (let i = 0; checked && i < length; i += 1) {
       if (
-        checkAllValue[i][dateAttribute] !== arrayValues[i][dateAttribute]
-        || (arrayValues[i][timesAttribute] || '').indexOf(checkAllValue[i][timesAttribute]) < 0
+        checkAllValue[i][dateAttribute] !== value[i][dateAttribute]
+        || (value[i][timesAttribute] || '').indexOf(checkAllValue[i][timesAttribute]) < 0
       ) {
         checked = false;
       }
@@ -159,11 +165,9 @@ const CheckAll = compose(
 });
 
 const getProps = ({
-  name,
   schema,
-  field,
+  value,
   uiSchema,
-  formattedValues,
 }) => {
   const attributes = Object.keys(schema.items.properties);
   if (attributes.length > 2) {
@@ -177,10 +181,10 @@ const getProps = ({
   const checkbox = dateWidget === 'checkbox';
 
   let propertySchema = schema;
-  let arrayValues = field.arrayValues || get(formattedValues, `${name}`.replace(/\.[0-9]+\./g, '[$1]'));
+  let adjustedValue = value;
   if (checkbox) {
-    arrayValues = field.arrayValues || fillSchedule(
-      arrayValues,
+    adjustedValue = fillSchedule(
+      adjustedValue,
       timesAttribute,
       dateAttribute,
     );
@@ -195,7 +199,6 @@ const getProps = ({
       },
     };
   }
-  field.arrayValues = arrayValues;
 
   const propertyUiSchema = {
     'ui:title': false,
@@ -232,7 +235,7 @@ const getProps = ({
         'ui:widgetProps': times(7, i => ({
           encoder: 'string',
           header: i === 0,
-          disabled: checkbox && !arrayValues[i][dateAttribute],
+          disabled: checkbox && !adjustedValue[i][dateAttribute],
         })),
       },
     },
@@ -246,11 +249,11 @@ const getProps = ({
   propertyUiSchema['ui:options'] = options;
   return {
     checkbox,
-    arrayValues,
     dateAttribute,
     timesAttribute,
     propertyUiSchema,
     propertySchema,
+    value: adjustedValue,
   };
 };
 
@@ -259,46 +262,29 @@ const ScheduleWidget = compose(
   withHandlers({
     dateParser: dateParserHandler,
     checkboxParser: checkboxParserHandler,
-    onChange: onChangeHandler,
   }),
   withProps(({ checkbox, dateParser, checkboxParser }) => ({
-    arrayParser: checkbox ? checkboxParser : dateParser,
+    scheduleParser: checkbox ? checkboxParser : dateParser,
   })),
   withHandlers({
-    setValue: setValueHandler,
+    onChange: onChangeHandler,
   }),
 )(({
-  options,
-  onChange,
-  checkbox,
-  dateParser,
-  arrayValues,
-  checkboxParser,
   propertySchema,
   propertyUiSchema,
   ...props
-}) => {
-  const { setValue } = props;
-  setValue(arrayValues);
-  return (
-    <React.Fragment>
-      <CheckAll
-        {...props}
-        options={options}
-        arrayValues={arrayValues}
-        propertyUiSchema={propertyUiSchema}
-      />
-      <ArrayWidget
-        {...props}
-        arrayValues={arrayValues}
-        schema={propertySchema}
-        uiSchema={propertyUiSchema}
-        options={{ ...options, onChange }}
-      />
-    </React.Fragment>
-  );
-});
-
-ScheduleWidget.custom = true;
+}) => (
+  <React.Fragment>
+    <CheckAll
+      {...props}
+      propertyUiSchema={propertyUiSchema}
+    />
+    <ArrayWidget
+      {...props}
+      schema={propertySchema}
+      uiSchema={propertyUiSchema}
+    />
+  </React.Fragment>
+));
 
 export default ScheduleWidget;

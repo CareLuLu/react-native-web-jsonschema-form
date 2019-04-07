@@ -1,5 +1,13 @@
 {
   "plugins": [
+    ["lodash", {
+      "id": [
+        "react-native-web-ui-components",
+        "lodash",
+        "recompact",
+        "underscore.string",
+      ]
+    }],
     "@babel/plugin-transform-react-jsx",
     "@babel/plugin-proposal-class-properties"
   ]

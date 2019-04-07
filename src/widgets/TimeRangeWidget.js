@@ -3,8 +3,9 @@ import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { withHandlers } from 'recompact';
 import { pick } from 'lodash';
-import { View, TimeRangePicker, StylePropType } from 'react-native-web-ui-components';
-import {
+import View from 'react-native-web-ui-components/View';
+import StylePropType from 'react-native-web-ui-components/StylePropType';
+import TimeRangePicker, {
   NUMBER_DECODER,
   NUMBER_ENCODER,
   STRING_DECODER,
@@ -34,11 +35,8 @@ const timePickerAttributes = [
 ];
 
 const TimeRangeWidget = withHandlers({
-  onWrappedFocus: ({ onFocus }) => () => onFocus(),
-  onWrappedChange: ({ onChange, onFocus }) => (value) => {
-    onFocus();
-    onChange(value);
-  },
+  onWrappedFocus: ({ name, onFocus }) => () => onFocus(name),
+  onWrappedChange: ({ name, onChange }) => value => onChange(value, name),
 })(({
   schema,
   uiSchema,

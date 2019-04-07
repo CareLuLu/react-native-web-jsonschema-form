@@ -1,27 +1,31 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
-import { View, Text, Icon } from 'react-native-web-ui-components';
+import View from 'react-native-web-ui-components/View';
+import Text from 'react-native-web-ui-components/Text';
+import Icon from 'react-native-web-ui-components/Icon';
 
 const styles = StyleSheet.create({
   order: {
     fontSize: 15,
     textAlign: 'center',
     paddingRight: 10,
-  },
-  offsetBottom: {
-    paddingBottom: 10,
+    paddingTop: 10,
   },
   hidden: {
     opacity: 0,
+    paddingTop: 0,
+  },
+  xs: {
+    paddingTop: 0,
   },
 });
 
 const OrderHandle = ({
   handle,
-  uiSchema,
   panHandlers,
   titleOnly,
+  screenType,
 }) => (
   <View {...(panHandlers || {})}>
     <Text
@@ -30,8 +34,8 @@ const OrderHandle = ({
       type="gray"
       style={[
         styles.order,
+        screenType === 'xs' ? styles.xs : null,
         titleOnly ? styles.hidden : null,
-        uiSchema['ui:inline'] ? null : styles.offsetBottom,
       ]}
     >
       <Icon name="th" />
@@ -40,8 +44,8 @@ const OrderHandle = ({
 );
 
 OrderHandle.propTypes = {
+  screenType: PropTypes.string.isRequired,
   handle: PropTypes.string.isRequired,
-  uiSchema: PropTypes.shape().isRequired,
   titleOnly: PropTypes.bool.isRequired,
   panHandlers: PropTypes.shape(),
 };

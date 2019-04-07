@@ -1,9 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Platform } from 'react-native';
-import { noop } from 'lodash';
+import { noop, isString } from 'lodash';
 import { withHandlers } from 'recompact';
-import { TextInput, StylePropType } from 'react-native-web-ui-components';
+import TextInput from 'react-native-web-ui-components/TextInput';
+import StylePropType from 'react-native-web-ui-components/StylePropType';
+import { formatMask } from '../utils';
 
 const styles = StyleSheet.create({
   defaults: {
@@ -17,51 +19,21 @@ const styles = StyleSheet.create({
   },
 });
 
-const maskOptions = {
-  undefined: /^$/,
-  a: /^[A-Za-zÀ-ÖØ-öø-ÿ]$/,
-  9: /^[0-9]$/,
-  '*': /^.$/,
-};
-
-const formatMask = (text, mask) => {
-  let result = '';
-  let cursorText = 0;
-  let cursorMask = 0;
-  for (; cursorText < text.length; cursorText += 1) {
-    let charText = text[cursorText];
-    let charMask;
-    let extras = '';
-    do {
-      charMask = mask[cursorMask];
-      cursorMask += 1;
-      if (!(charMask in maskOptions)) {
-        extras += charMask;
-        if (charMask === charText) {
-          cursorText += 1;
-          charText = text[cursorText] || '';
-          result += extras;
-          extras = '';
-        }
-      }
-    } while (!(charMask in maskOptions));
-    if (maskOptions[charMask].test(charText)) {
-      result += extras + charText;
-    }
-  }
-  return result;
-};
-
 const TextWidget = withHandlers({
-  onWrappedFocus: ({ onFocus }) => () => onFocus(),
-  onWrappedChange: ({ mask, onChange }) => (text) => {
+  onWrappedFocus: ({ name, onFocus }) => () => onFocus(name),
+  onWrappedChange: ({
+    name,
+    mask,
+    onChange,
+    textParser,
+  }) => (text) => {
     if (!mask) {
-      return onChange(text);
+      return onChange(textParser(text), name);
     }
     if (typeof mask === 'function') {
-      return onChange(mask(text));
+      return onChange(textParser(mask(text)), name);
     }
-    return onChange(formatMask(text, mask));
+    return onChange(textParser(formatMask(text, mask)), name);
   },
 })(({
   uiSchema,
@@ -79,10 +51,20 @@ const TextWidget = withHandlers({
   multiline,
   numberOfLines,
   auto,
+  onChange,
   onWrappedChange,
   onWrappedFocus,
+  textParser,
   ...props
 }) => {
+  if (mask && isString(mask) && value !== null && value !== undefined) {
+    const maskedValue = textParser(formatMask(value, mask));
+    if (value !== maskedValue) {
+      setTimeout(() => onChange(maskedValue, name, {
+        silent: true,
+      }));
+    }
+  }
   const currentStyle = [
     styles.defaults,
     auto ? styles.auto : styles.fullWidth,
@@ -130,6 +112,7 @@ TextWidget.propTypes = {
   multiline: PropTypes.bool,
   numberOfLines: PropTypes.number,
   auto: PropTypes.bool,
+  textParser: PropTypes.func,
 };
 
 TextWidget.defaultProps = {
@@ -139,7 +122,7 @@ TextWidget.defaultProps = {
   onChange: noop,
   onSubmit: noop,
   focus: null,
-  value: '',
+  value: null,
   placeholder: '',
   readonly: false,
   disabled: false,
@@ -148,6 +131,7 @@ TextWidget.defaultProps = {
   multiline: false,
   numberOfLines: 1,
   auto: false,
+  textParser: value => value,
 };
 
 export default TextWidget;

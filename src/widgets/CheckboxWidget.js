@@ -2,7 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { withHandlers } from 'recompact';
-import { StylePropType, Screen, Checkbox } from 'react-native-web-ui-components';
+import Screen from 'react-native-web-ui-components/Screen';
+import Checkbox from 'react-native-web-ui-components/Checkbox';
+import StylePropType from 'react-native-web-ui-components/StylePropType';
 
 const styles = StyleSheet.create({
   defaults: {
@@ -29,10 +31,11 @@ const styles = StyleSheet.create({
 });
 
 const CheckboxWidget = withHandlers({
-  onWrappedFocus: ({ onFocus }) => () => onFocus(),
-  onWrappedChange: ({ onChange, onFocus }) => (checked, value) => {
-    onFocus();
-    onChange(!checked ? value : undefined);
+  onWrappedFocus: ({ name, onFocus }) => () => onFocus(name),
+  onWrappedChange: ({ name, uncheckable, onChange }) => (checked, value) => {
+    if (!checked || uncheckable) {
+      onChange(!checked ? value : undefined, name);
+    }
   },
 })(({
   uiSchema,
@@ -99,6 +102,7 @@ CheckboxWidget.propTypes = {
   text: PropTypes.string,
   checked: PropTypes.bool,
   adjustTitle: PropTypes.bool,
+  uncheckable: PropTypes.bool,
 };
 
 CheckboxWidget.defaultProps = {
@@ -113,6 +117,7 @@ CheckboxWidget.defaultProps = {
   checked: false,
   adjustTitle: true,
   Wrapper: Checkbox,
+  uncheckable: true,
 };
 
 export default CheckboxWidget;
