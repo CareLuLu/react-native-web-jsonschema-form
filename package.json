@@ -1,6 +1,6 @@
 {
-  "name": "react-native-web-ui-components",
-  "version": "1.0.2",
+  "name": "react-native-web-jsonschema-form",
+  "version": "1.0.3",
   "private": false,
   "main": "index.js",
   "scripts": {
@@ -32,7 +32,7 @@
   "peerDependencies": {
     "react": "^16.6.1",
     "react-native": "*",
-    "react-native-web-ui-components": "^1.0.0"
+    "react-native-web-ui-components": "^1.0.3"
   },
   "browserslist": [
     ">0.2%",
