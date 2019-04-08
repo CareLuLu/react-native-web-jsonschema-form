@@ -67,7 +67,7 @@ const DateWidget = withHandlers({
         placeholder={placeholder}
         autoFocus={focused}
         customStyles={{
-          dateInput: css,
+          input: css,
         }}
         css={`
           .react-datepicker__input-container input.${className} {
