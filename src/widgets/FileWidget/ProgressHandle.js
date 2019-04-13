@@ -17,7 +17,17 @@ const styles = StyleSheet.create({
   },
   empty: {
     height: 2,
-    backgroundColor: '#C8C8C8',
+    backgroundColor: 'rgba(200, 200, 200, 0.5)',
+  },
+  error: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#FF0000',
+    opacity: 0.2,
+    borderRadius: 2,
   },
 });
 
@@ -46,6 +56,9 @@ const ProgressHandle = ({ meta, theme }) => (
         />
         <View className="FileWidget__progress" style={[styles.empty, { width: `${(100 - meta['ui:progress'])}%` }]} />
       </Row>
+    ) : null}
+    {meta['ui:error'] !== undefined ? (
+      <Row style={styles.error} />
     ) : null}
   </React.Fragment>
 );

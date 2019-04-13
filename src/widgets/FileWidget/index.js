@@ -17,7 +17,12 @@ import StylePropType from 'react-native-web-ui-components/StylePropType';
 import Dropzone from 'react-native-web-ui-components/Dropzone';
 import View from 'react-native-web-ui-components/View';
 import Row from 'react-native-web-ui-components/Row';
-import { withPrefix, getTitle, FIELD_TITLE } from '../../utils';
+import {
+  withPrefix,
+  getTitle,
+  isField,
+  FIELD_TITLE,
+} from '../../utils';
 import ArrayWidget from '../ArrayWidget';
 import ObjectWidget from '../ObjectWidget';
 import TextWidget from '../TextWidget';
@@ -26,6 +31,8 @@ import RemoveHandle from './RemoveHandle';
 import ProgressHandle from './ProgressHandle';
 
 let id = 0;
+
+const handleRegex = /__handle( |$)/;
 
 const styles = StyleSheet.create({
   defaults: {
@@ -419,7 +426,11 @@ const onAcceptedHanlder = ({
   });
 };
 
-const onProgressHandler = ({
+const setMeta = (meta, params) => {
+  each(params, (v, k) => { meta[`ui:${k}`] = v; }); // eslint-disable-line
+};
+
+const onMetaHandler = ({
   name,
   meta,
   value,
@@ -427,7 +438,7 @@ const onProgressHandler = ({
   fileSchema,
   nameAttribute,
   originalOnChange,
-}) => (fileId, progress) => {
+}) => (fileId, params) => {
   let update;
   let metaItem;
   let metaItemIndex;
@@ -440,7 +451,7 @@ const onProgressHandler = ({
       }
     }
     if (metaItem) {
-      metaItem['ui:progress'] = progress;
+      setMeta(metaItem, params);
       update = [`${name}.${metaItemIndex}`];
     }
   } else if (schema.type === 'array' && fileSchema.type === 'object') {
@@ -451,14 +462,14 @@ const onProgressHandler = ({
       }
     }
     if (metaItem) {
-      metaItem[nameAttribute]['ui:progress'] = progress;
+      setMeta(metaItem[nameAttribute], params);
       update = [`${name}.${metaItemIndex}.${nameAttribute}`];
     }
   } else if (fileSchema.type === 'string' && nextMeta['ui:fileId'] === fileId) {
-    nextMeta['ui:progress'] = progress;
+    setMeta(nextMeta, params);
     update = [name];
   } else if (fileSchema.type === 'object' && nextMeta[nameAttribute] && nextMeta[nameAttribute]['ui:fileId'] === fileId) {
-    nextMeta[nameAttribute]['ui:progress'] = progress;
+    setMeta(nextMeta[nameAttribute], params);
     update = [`${name}.${nameAttribute}`];
   }
   if (update) {
@@ -471,8 +482,8 @@ const onProgressHandler = ({
 
 const onDropHandler = ({
   onDrop,
+  onMeta,
   onAccepted,
-  onProgress,
   fileSchema,
   nameAttribute,
   pathAttribute,
@@ -488,7 +499,8 @@ const onDropHandler = ({
           [nameAttribute]: file.name,
           [pathAttribute]: file.uri || file.name,
         }),
-        setProgress: progress => onProgress(fileId, progress),
+        setProgress: progress => onMeta(fileId, { progress }),
+        setError: error => onMeta(fileId, { error }),
       };
     });
     onDrop(nextFiles, onAccepted);
@@ -525,13 +537,23 @@ const FileWidget = compose(
   withProps(getProps),
   withHandlers({
     onAreaClick: ({ dragging }) => event => (dragging && event.preventDefault()),
-    onClick: () => event => event.preventDefault(),
+    onClick: () => (event) => {
+      if (event.nativeEvent.target.tagName === 'INPUT') {
+        event.preventDefault();
+      }
+      if (isField(event.nativeEvent.target, handleRegex)) {
+        event.preventDefault();
+      }
+      if (event.nativeEvent.target.tagName === 'A') {
+        event.stopPropagation();
+      }
+    },
     onChange: onChangeHandler,
     originalOnChange: ({ onChange }) => (...args) => onChange(...args),
   }),
   withHandlers({
     onAccepted: onAcceptedHanlder,
-    onProgress: onProgressHandler,
+    onMeta: onMetaHandler,
   }),
   withHandlers({
     onDrop: onDropHandler,

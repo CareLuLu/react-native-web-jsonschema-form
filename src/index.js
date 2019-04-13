@@ -7,12 +7,12 @@ import {
   noop,
   each,
   cloneDeep,
-  isEqual,
   isString,
   isArray,
   isError,
   isPlainObject,
 } from 'lodash';
+import isEqual from 'fast-deep-equal';
 import Row from 'react-native-web-ui-components/Row';
 import { withTheme } from 'react-native-web-ui-components/Theme';
 import FormEvent from './FormEvent';
