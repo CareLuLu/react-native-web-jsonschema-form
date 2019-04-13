@@ -116,13 +116,20 @@ const getProps = ({
 
 const onAddHandler = ({
   name,
+  meta,
   value,
   schema,
   onChange,
 }) => () => {
   const newItem = getItem(schema);
   const nextValue = value.concat(value.length !== 0 ? [newItem] : [newItem, newItem]);
-  onChange(nextValue, name);
+  let nextMeta = meta;
+  if (meta) {
+    nextMeta = nextMeta.concat(value.length !== 0 ? [{}] : [{}, {}]);
+  }
+  onChange(nextValue, name, {
+    nextMeta: nextMeta || false,
+  });
 };
 
 const onRemoveHandler = ({
@@ -131,13 +138,19 @@ const onRemoveHandler = ({
   onChange,
   reorder,
   errors,
+  meta,
 }) => (index) => {
   const nextValue = value.filter((v, i) => (i !== index));
+  let nextMeta = meta;
+  if (meta) {
+    nextMeta = nextMeta.filter((v, i) => (i !== index));
+  }
   let nextErrors = errors;
   if (errors) {
     nextErrors = nextErrors.filter((v, i) => (i !== index));
   }
   onChange(nextValue, name, {
+    nextMeta: nextMeta || false,
     nextErrors: nextErrors || false,
   });
   setTimeout(reorder);
@@ -157,7 +170,12 @@ const ArrayWidget = compose(
     dragging: null,
     refs: [],
   }, {
-    setDragging: () => dragging => ({ dragging }),
+    setDragging: (__, { setDragging }) => (dragging) => {
+      if (setDragging) {
+        setDragging(dragging);
+      }
+      return { dragging };
+    },
     reorder: ({ review }) => () => ({
       review: review + 1,
       dragging: null,
@@ -175,6 +193,7 @@ const ArrayWidget = compose(
   }),
 )((props) => {
   const {
+    meta,
     review,
     name,
     value,
@@ -194,6 +213,7 @@ const ArrayWidget = compose(
   } = props;
   const { LabelWidget } = widgets;
   const hasError = isArray(errors) && errors.length > 0 && !errors.hidden;
+
   return (
     <React.Fragment>
       {uiSchema['ui:title'] !== false ? (
@@ -207,6 +227,7 @@ const ArrayWidget = compose(
           propertyName={`${name}.title`}
           propertyValue={getItem(schema)}
           propertyErrors={{}}
+          propertyMeta={getItem(schema) || {}}
           propertyUiSchema={adjustUiSchema(propertyUiSchema, -1)}
           index={-1}
           zIndex={1}
@@ -219,6 +240,7 @@ const ArrayWidget = compose(
           key={`${review}.${name}.0`}
           propertyName={`${name}.0`}
           propertyValue={getItem(schema)}
+          propertyMeta={getItem(schema) || {}}
           propertyErrors={errors && errors[0]}
           propertyUiSchema={adjustUiSchema(propertyUiSchema, 0)}
           index={0}
@@ -232,6 +254,7 @@ const ArrayWidget = compose(
           key={`${review}.${name}.${index}`}
           propertyName={`${name}.${index}`}
           propertyValue={value[index]}
+          propertyMeta={(meta && meta[index]) || getItem(schema) || {}}
           propertyErrors={errors && errors[index]}
           propertyUiSchema={adjustUiSchema(propertyUiSchema, index)}
           index={index}

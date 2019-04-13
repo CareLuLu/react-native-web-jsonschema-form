@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { omit, isString, isArray } from 'lodash';
+import View from 'react-native-web-ui-components/View';
 import Row from 'react-native-web-ui-components/Row';
 import Column from 'react-native-web-ui-components/Column';
 import Screen from 'react-native-web-ui-components/Screen';
@@ -30,7 +31,35 @@ const styles = StyleSheet.create({
 
 const attributes = ['type', 'children', 'style', 'columns'];
 
+const getMeta = (schema) => {
+  if (schema.type === 'array') {
+    return [];
+  }
+  return {};
+};
+
 const createProperty = (property, gridItem, index, params) => {
+  const {
+    name,
+    schema,
+    fields,
+  } = params;
+  const propertySchema = schema.properties[property];
+  const propertyName = withPrefix(property, name);
+
+  if (!propertySchema) {
+    const UnexistentProperty = () => null;
+    UnexistentProperty.key = propertyName;
+    return UnexistentProperty;
+  }
+
+  const PropertyComponent = getComponent(propertySchema.type, 'Field', fields);
+  if (!PropertyComponent) {
+    const UnexistentPropertyComponent = () => null;
+    UnexistentPropertyComponent.key = propertyName;
+    return UnexistentPropertyComponent;
+  }
+
   let PropertyContainer;
   let propertyContainerProps;
   if (gridItem.type === 'grid') {
@@ -45,19 +74,9 @@ const createProperty = (property, gridItem, index, params) => {
     PropertyContainer = React.Fragment;
     propertyContainerProps = {};
   }
-  const {
-    name,
-    schema,
-    fields,
-  } = params;
-  const propertyName = withPrefix(property, name);
-  const propertySchema = schema.properties[property];
-  const PropertyComponent = getComponent(propertySchema.type, 'Field', fields);
-  if (!PropertyComponent) {
-    return null;
-  }
   const Property = ({
     value,
+    meta,
     errors,
     uiSchema,
     ...props
@@ -66,6 +85,7 @@ const createProperty = (property, gridItem, index, params) => {
       <PropertyComponent
         {...props}
         value={value && value[property]}
+        meta={(meta && meta[property]) || getMeta(propertySchema)}
         errors={errors && errors[property]}
         name={propertyName}
         schema={propertySchema}
@@ -103,7 +123,14 @@ const createGridItem = (
     Label.key = key;
     return Label;
   }
-  const Wrapper = gridItem.type === 'column' ? Column : Row;
+  let Wrapper;
+  if (gridItem.type === 'column') {
+    Wrapper = Column;
+  } else if (gridItem.type === 'view') {
+    Wrapper = View;
+  } else {
+    Wrapper = Row;
+  }
   const gridStyle = Screen.getType() !== 'xs' && gridItem.type === 'grid' ? styles.grid : null;
   const items = gridItem.children.map((child, i) => {
     if (isString(child)) {
@@ -132,22 +159,25 @@ const createGrid = (grid, params) => {
     i === 0,
     params,
   ));
-  return props => (
-    <React.Fragment>
-      {Screen.getType() !== 'xs' ? (
-        <Helmet>
-          <style>
-            {`
-              .FormGridItem__grid {
-                width: calc(100% + 10px);
-              }
-            `}
-          </style>
-        </Helmet>
-      ) : null}
-      {items.map(GridItem => <GridItem key={GridItem.key} {...props} />)}
-    </React.Fragment>
-  );
+  return (props) => {
+    const currentStyle = props.style; // eslint-disable-line
+    return (
+      <Row style={currentStyle}>
+        {Screen.getType() !== 'xs' ? (
+          <Helmet>
+            <style>
+              {`
+                .FormGridItem__grid {
+                  width: calc(100% + 10px);
+                }
+              `}
+            </style>
+          </Helmet>
+        ) : null}
+        {items.map(GridItem => <GridItem key={GridItem.key} {...props} />)}
+      </Row>
+    );
+  };
 };
 
 export default createGrid;

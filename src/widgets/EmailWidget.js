@@ -1,8 +1,8 @@
 import React from 'react';
-import TextWidget from './TextWidget';
+import TextInputWidget from './TextInputWidget';
 
 const EmailWidget = props => (
-  <TextWidget {...props} keyboardType="email-address" />
+  <TextInputWidget {...props} keyboardType="email-address" />
 );
 
 export default EmailWidget;

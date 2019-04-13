@@ -23,7 +23,7 @@ class StringField extends AbstractField {
     } else if (zip.test(name)) {
       Widget = widgets.ZipWidget;
     } else {
-      Widget = widgets.TextWidget;
+      Widget = widgets.TextInputWidget;
     }
     return Widget;
   }

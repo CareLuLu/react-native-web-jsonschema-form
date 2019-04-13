@@ -3,7 +3,7 @@ import CheckboxWidget from './CheckboxWidget';
 import DateWidget from './DateWidget';
 import EmailWidget from './EmailWidget';
 import ErrorWidget from './ErrorWidget';
-import RatingWidget from './RatingWidget';
+import FileWidget from './FileWidget';
 import HiddenWidget from './HiddenWidget';
 import IntegerWidget from './IntegerWidget';
 import LabelWidget from './LabelWidget';
@@ -12,11 +12,13 @@ import ObjectWidget from './ObjectWidget';
 import PasswordWidget from './PasswordWidget';
 import PhoneWidget from './PhoneWidget';
 import RadioWidget from './RadioWidget';
+import RatingWidget from './RatingWidget';
 import ScheduleWidget from './ScheduleWidget';
 import SelectWidget from './SelectWidget';
 import TextareaWidget from './TextareaWidget';
-import TimeRangeWidget from './TimeRangeWidget';
+import TextInputWidget from './TextInputWidget';
 import TextWidget from './TextWidget';
+import TimeRangeWidget from './TimeRangeWidget';
 import ZipWidget from './ZipWidget';
 
 export default {
@@ -25,6 +27,7 @@ export default {
   DateWidget,
   EmailWidget,
   ErrorWidget,
+  FileWidget,
   HiddenWidget,
   IntegerWidget,
   LabelWidget,
@@ -37,6 +40,7 @@ export default {
   ScheduleWidget,
   SelectWidget,
   TextareaWidget,
+  TextInputWidget,
   TextWidget,
   TimeRangeWidget,
   ZipWidget,

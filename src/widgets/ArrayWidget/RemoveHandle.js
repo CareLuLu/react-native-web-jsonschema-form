@@ -7,7 +7,7 @@ import Link from 'react-native-web-ui-components/Link';
 const styles = StyleSheet.create({
   remove: {
     paddingLeft: 10,
-    paddingTop: 10,
+    paddingTop: 11,
   },
   hidden: {
     opacity: 0,

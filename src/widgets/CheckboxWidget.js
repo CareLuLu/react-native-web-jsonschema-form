@@ -86,7 +86,7 @@ const CheckboxWidget = withHandlers({
 });
 
 CheckboxWidget.propTypes = {
-  uiSchema: PropTypes.shape({}).isRequired,
+  uiSchema: PropTypes.shape().isRequired,
   onFocus: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
   name: PropTypes.string.isRequired,
