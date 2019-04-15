@@ -270,6 +270,7 @@ const getProps = ({
     propertyUiSchema['ui:title'] = false;
     propertyUiSchema['ui:options'] = propertyUiSchema['ui:options'] || {};
     propertyUiSchema['ui:options'].addable = false;
+    propertyUiSchema['ui:options'].minimumNumberOfItems = 0;
     propertyUiSchema['ui:options'].OrderComponent = propertyUiSchema['ui:options'].OrderComponent || OrderHandle;
     propertyUiSchema['ui:options'].RemoveComponent = propertyUiSchema['ui:options'].RemoveComponent || RemoveHandle;
     propertyUiSchema['ui:titleProps'] = propertyUiSchema['ui:titleProps'] || {};

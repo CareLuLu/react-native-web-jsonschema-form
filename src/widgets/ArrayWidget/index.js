@@ -103,6 +103,10 @@ const getProps = ({
     propertySchema,
     propertyUiSchema,
     PropertyField,
+    minimumNumberOfItems: (
+      options.minimumNumberOfItems === undefined
+      || options.minimumNumberOfItems === null
+    ) ? 1 : options.minimumNumberOfItems,
     uiSchema: adjustedUiSchema,
     addLabel: options.addLabel || `Add ${formatTitle(title)}`,
     addable: options.addable !== false,
@@ -120,12 +124,20 @@ const onAddHandler = ({
   value,
   schema,
   onChange,
+  minimumNumberOfItems,
 }) => () => {
-  const newItem = getItem(schema);
-  const nextValue = value.concat(value.length !== 0 ? [newItem] : [newItem, newItem]);
+  let nextValue;
   let nextMeta = meta;
-  if (meta) {
-    nextMeta = nextMeta.concat(value.length !== 0 ? [{}] : [{}, {}]);
+  if (value.length < minimumNumberOfItems) {
+    nextValue = value.concat(times(minimumNumberOfItems - value.length + 1, () => getItem(schema)));
+    if (meta) {
+      nextMeta = nextMeta.concat(times(minimumNumberOfItems - value.length + 1, () => ({})));
+    }
+  } else {
+    nextValue = value.concat([getItem(schema)]);
+    if (meta) {
+      nextMeta = nextMeta.concat([{}]);
+    }
   }
   onChange(nextValue, name, {
     nextMeta: nextMeta || false,
@@ -210,6 +222,7 @@ const ArrayWidget = compose(
     screenType,
     propertyUiSchema,
     PropertyComponent,
+    minimumNumberOfItems,
   } = props;
   const { LabelWidget } = widgets;
   const hasError = isArray(errors) && errors.length > 0 && !errors.hidden;
@@ -234,20 +247,6 @@ const ArrayWidget = compose(
           titleOnly
         />
       ) : null}
-      {!value.length ? (
-        <PropertyComponent
-          {...props}
-          key={`${review}.${name}.0`}
-          propertyName={`${name}.0`}
-          propertyValue={getItem(schema)}
-          propertyMeta={getItem(schema) || {}}
-          propertyErrors={errors && errors[0]}
-          propertyUiSchema={adjustUiSchema(propertyUiSchema, 0)}
-          index={0}
-          zIndex={1}
-          noTitle={screenType !== 'xs'}
-        />
-      ) : null}
       {times(value.length, index => (
         <PropertyComponent
           {...props}
@@ -255,6 +254,20 @@ const ArrayWidget = compose(
           propertyName={`${name}.${index}`}
           propertyValue={value[index]}
           propertyMeta={(meta && meta[index]) || getItem(schema) || {}}
+          propertyErrors={errors && errors[index]}
+          propertyUiSchema={adjustUiSchema(propertyUiSchema, index)}
+          index={index}
+          zIndex={dragging === index ? value.length : (value.length - index)}
+          noTitle={screenType !== 'xs'}
+        />
+      ))}
+      {times(Math.max(0, minimumNumberOfItems - value.length), index => (
+        <PropertyComponent
+          {...props}
+          key={`${review}.${name}.${index}`}
+          propertyName={`${name}.${index}`}
+          propertyValue={getItem(schema)}
+          propertyMeta={getItem(schema) || {}}
           propertyErrors={errors && errors[index]}
           propertyUiSchema={adjustUiSchema(propertyUiSchema, index)}
           index={index}
