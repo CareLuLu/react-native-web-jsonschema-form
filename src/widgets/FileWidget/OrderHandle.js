@@ -13,31 +13,18 @@ const styles = StyleSheet.create({
     paddingTop: 11,
     lineHeight: 23,
   },
-  hidden: {
-    opacity: 0,
-    paddingTop: 0,
-  },
-  xs: {
-    paddingTop: 0,
-  },
 });
 
 const OrderHandle = ({
   handle,
   panHandlers,
-  titleOnly,
-  screenType,
 }) => (
   <View {...(panHandlers || {})}>
     <Text
       className={handle}
       auto
       type="gray"
-      style={[
-        styles.order,
-        screenType === 'xs' ? styles.xs : null,
-        titleOnly ? styles.hidden : null,
-      ]}
+      style={styles.order}
     >
       <Icon name="th" />
     </Text>
@@ -45,9 +32,7 @@ const OrderHandle = ({
 );
 
 OrderHandle.propTypes = {
-  screenType: PropTypes.string.isRequired,
   handle: PropTypes.string.isRequired,
-  titleOnly: PropTypes.bool.isRequired,
   panHandlers: PropTypes.shape(),
 };
 

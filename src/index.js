@@ -7,12 +7,12 @@ import {
   noop,
   each,
   cloneDeep,
-  isEqual,
   isString,
   isArray,
   isError,
   isPlainObject,
 } from 'lodash';
+import isEqual from 'fast-deep-equal';
 import Row from 'react-native-web-ui-components/Row';
 import { withTheme } from 'react-native-web-ui-components/Theme';
 import FormEvent from './FormEvent';
@@ -26,6 +26,7 @@ import {
   toPath,
   isField,
   normalized,
+  getMeta,
   getValues,
   getErrors,
   getRequired,
@@ -82,6 +83,7 @@ class Form extends React.Component {
     formData: PropTypes.shape(),
     schema: PropTypes.shape(),
     uiSchema: PropTypes.shape(),
+    metaSchema: PropTypes.shape(),
     errorSchema: PropTypes.shape(),
     children: PropTypes.node,
     onRef: PropTypes.func,
@@ -109,6 +111,7 @@ class Form extends React.Component {
       properties: [],
     },
     uiSchema: {},
+    metaSchema: undefined,
     errorSchema: {},
     children: null,
     onRef: noop,
@@ -138,6 +141,7 @@ class Form extends React.Component {
     ) {
       const { schema, uiSchema } = getStructure(nextProps.schema, nextProps.uiSchema);
       const formDataProp = getValues(nextProps.formData, schema);
+      const values = merge(prevState.values, formDataProp);
       state = {
         schema,
         uiSchema,
@@ -148,8 +152,10 @@ class Form extends React.Component {
         schemaProp: nextProps.schema,
         uiSchemaProp: nextProps.uiSchema,
         errorSchemaProp: nextProps.errorSchema,
-        values: cloneDeep(merge(prevState.values, formDataProp)),
+        metaSchemaProp: nextProps.metaSchema,
+        values: cloneDeep(values),
         errors: cloneDeep(getErrors(nextProps.errorSchema, schema)),
+        meta: cloneDeep(getMeta(nextProps.metaSchema || values, schema)),
       };
     } else {
       const {
@@ -157,6 +163,7 @@ class Form extends React.Component {
         values,
         formDataProp,
         errorSchemaProp,
+        metaSchemaProp,
       } = prevState;
 
       // If the relevant attributes of formData changes, we recalculate values.
@@ -178,6 +185,15 @@ class Form extends React.Component {
           errors: cloneDeep(getErrors(nextProps.errorSchema, schema)),
         });
       }
+
+      // If the metaSchema changes, we reset the metaSchema.
+      if (!isEqual(nextProps.metaSchemaProp, metaSchemaProp)) {
+        state = Object.assign(state || {}, {
+          event: 'rebuild:meta',
+          metaSchemaProp: nextProps.metaSchema,
+          meta: cloneDeep(getMeta(nextProps.metaSchema || values, schema)),
+        });
+      }
     }
     return state;
   }
@@ -192,12 +208,12 @@ class Form extends React.Component {
       formData,
       widgets,
       errorSchema,
+      metaSchema,
     } = props;
     this.id = `Form__${name || Math.random().toString(36).substr(2, 9)}`;
     this.fieldRegex = new RegExp(`${this.id}-field`);
     this.mountSteps = [];
     this.widgets = Object.assign({}, defaultWidgets, widgets);
-
     const structure = getStructure(schema, uiSchema);
     const formDataProp = getValues(formData, structure.schema);
     this.state = {
@@ -212,8 +228,10 @@ class Form extends React.Component {
       schemaProp: schema,
       uiSchemaProp: uiSchema,
       errorSchemaProp: errorSchema,
+      metaSchemaProp: metaSchema,
       values: cloneDeep(formDataProp),
       errors: cloneDeep(getErrors(errorSchema, structure.schema)),
+      meta: cloneDeep(getMeta(metaSchema || formDataProp, structure.schema)),
     };
     onRef(this);
   }
@@ -274,8 +292,14 @@ class Form extends React.Component {
       overwrittenFocus,
       update = [],
       nextErrors = false,
+      nextMeta = false,
     } = params;
-    const { focus, values, errors } = this.state;
+    const {
+      focus,
+      meta,
+      values,
+      errors,
+    } = this.state;
     const { onChange } = this.props;
     let nextFocus = overwrittenFocus || name;
     if (silent) {
@@ -286,6 +310,7 @@ class Form extends React.Component {
       value,
       silent,
       values,
+      nextMeta,
       nextErrors,
       focus: nextFocus,
       update: [nextFocus, name].concat(update),
@@ -294,6 +319,9 @@ class Form extends React.Component {
       if (event.allowed()) {
         const path = toPath(event.params.name);
         set(event.params.values, path, event.params.value);
+        if (event.params.nextMeta !== false) {
+          set(meta, path, event.params.nextMeta);
+        }
         if (event.params.nextErrors !== false) {
           set(errors, path, event.params.nextErrors);
         }
@@ -306,6 +334,7 @@ class Form extends React.Component {
           }
         }
         this.onMount(() => this.setState({
+          meta: { ...meta },
           errors: { ...errors },
           event: event.name,
           values: { ...event.params.values },
@@ -329,6 +358,7 @@ class Form extends React.Component {
     if (filterEmptyValues) {
       values = this.filterEmpty(values);
     }
+
     const event = new FormEvent('submit', { values });
     this.run(onSubmit(event), (response) => {
       if (event.allowed()) {
@@ -440,6 +470,7 @@ class Form extends React.Component {
       event,
       schema,
       uiSchema,
+      meta,
       values,
       errors,
       focus,
@@ -467,7 +498,6 @@ class Form extends React.Component {
       }
       setTimeout(() => this.onMount(() => this.setState(nextState)));
     }
-
     const { ObjectField } = fields;
     return (
       <React.Fragment>
@@ -479,7 +509,9 @@ class Form extends React.Component {
             event={event}
             schema={schema}
             uiSchema={uiSchema}
+            meta={meta}
             value={values}
+            values={values}
             errors={errors}
             focus={focus}
             update={update}

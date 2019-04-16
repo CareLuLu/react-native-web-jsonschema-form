@@ -36,7 +36,7 @@ const findIndex = async (index, position, i, j, refs) => {
     return before ? Math.max(0, (j - 1)) : Math.min((j + 1), refs.length - 1);
   }
   if (before) {
-    return findIndex(index, position, i, mid - 1, refs);
+    return findIndex(index, position, i, Math.max(0, mid - 1), refs);
   }
   return findIndex(index, position, mid + 1, j, refs);
 };
@@ -52,9 +52,11 @@ const onDragEndHandler = ({
   reorder,
   setDragging,
   errors,
+  meta,
 }) => async ({ y, x }) => {
   if (y !== 0 || x !== 0) {
     let nextValue = value;
+    let nextMeta = meta;
     let nextErrors = errors;
     if (value.length > index) {
       const position = await getItemPosition(refs[index]);
@@ -73,6 +75,11 @@ const onDragEndHandler = ({
       const itemValue = value[index];
       nextValue = value.filter((v, i) => (i !== index));
       nextValue.splice(nextIndex, 0, itemValue);
+      if (meta) {
+        const itemMeta = nextMeta[index];
+        nextMeta = nextMeta.filter((v, i) => (i !== index));
+        nextMeta.splice(nextIndex, 0, itemMeta);
+      }
       if (errors) {
         const itemError = nextErrors[index];
         nextErrors = nextErrors.filter((v, i) => (i !== index));
@@ -80,6 +87,7 @@ const onDragEndHandler = ({
       }
     }
     onChange(nextValue, name, {
+      nextMeta: nextMeta || false,
       nextErrors: nextErrors || false,
     });
     setTimeout(reorder);
@@ -92,8 +100,8 @@ const onRemovePressHandler = ({ index, onRemove }) => () => onRemove(index);
 
 const onItemRefHandler = ({ index, onItemRef }) => ref => onItemRef(ref, index);
 
-const ItemComponentHandler = props => ({ panHandlers }) => ( // eslint-disable-line
-  <Item {...props} panHandlers={panHandlers} />
+const ItemComponentHandler = ({ style, ...props }) => ({ panHandlers }) => ( // eslint-disable-line
+  <Item {...props} itemStyle={style} panHandlers={panHandlers} />
 );
 
 const DraggableItem = compose(

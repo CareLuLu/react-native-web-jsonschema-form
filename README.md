@@ -38,9 +38,9 @@ You can select the theme of your form using [react-native-web-ui-components](htt
 import React from 'react';
 import { StyleSheet } from 'react=native';
 import { UIProvider, Router, Switch } from 'react-native-web-ui-components';
-import { createNativeHistory } from 'history';
+import { createMemoryHistory } from 'history';
 
-const history = createNativeHistory();
+const history = createMemoryHistory();
 
 const theme = {
   input: {

@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import { StyleSheet, Platform, View as RNView } from 'react-native';
 import { noop } from 'lodash';
 import Row from 'react-native-web-ui-components/Row';
-import View from 'react-native-web-ui-components/View';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
+import RemoveHandle from './RemoveHandle';
 
 const styles = StyleSheet.create({
   main: {
@@ -12,7 +12,12 @@ const styles = StyleSheet.create({
   },
 });
 
-const Wrapper = ({ children, style, ...props }) => {
+const Wrapper = ({
+  children,
+  style,
+  itemStyle,
+  ...props
+}) => {
   const { value, index } = props;
   const zIndex = { zIndex: value.length - index };
   if (Platform.OS === 'web') {
@@ -22,12 +27,13 @@ const Wrapper = ({ children, style, ...props }) => {
       width: '100%',
       flexDirection: 'row',
       ...zIndex,
+      ...StyleSheet.flatten(itemStyle),
       ...style,
     };
     return React.createElement('div', { ...props, style: css }, children);
   }
   return (
-    <Row style={[styles.container, zIndex]}>
+    <Row style={[styles.container, itemStyle, zIndex]}>
       {children}
     </Row>
   );
@@ -38,23 +44,28 @@ Wrapper.propTypes = {
   index: PropTypes.number.isRequired,
   children: PropTypes.node.isRequired,
   style: StylePropType,
+  itemStyle: StylePropType,
 };
 
 Wrapper.defaultProps = {
   style: {},
+  itemStyle: {},
 };
 
 const Item = ({
   onItemRef,
   panHandlers,
   style,
+  itemStyle,
   onMouseDown,
   onTouchStart,
   onMouseUp,
   onTouchEnd,
+  onClick,
   propertyName,
   propertyValue,
   propertySchema,
+  propertyMeta,
   propertyErrors,
   PropertyField,
   RemoveComponent,
@@ -64,6 +75,7 @@ const Item = ({
   const {
     value,
     index,
+    auto,
     removable,
     orderable,
     screenType,
@@ -72,6 +84,7 @@ const Item = ({
   return (
     <React.Fragment>
       <Wrapper
+        itemStyle={itemStyle}
         style={style}
         value={value}
         index={index}
@@ -79,11 +92,12 @@ const Item = ({
         onTouchStart={onTouchStart}
         onMouseUp={onMouseUp}
         onTouchEnd={onTouchEnd}
+        onClick={onClick}
       >
         {orderable ? (
           <OrderComponent {...props} panHandlers={panHandlers} />
         ) : null}
-        <RNView ref={onItemRef} style={styles.main}>
+        <RNView ref={onItemRef} style={auto ? null : styles.main}>
           <PropertyField
             {...props}
             name={propertyName}
@@ -91,13 +105,14 @@ const Item = ({
             uiSchema={propertyUiSchema}
             errors={propertyErrors}
             value={propertyValue}
+            meta={propertyMeta}
           />
         </RNView>
-        {removable && screenType !== 'xs' ? (
+        {removable && (screenType !== 'xs' || RemoveComponent !== RemoveHandle) ? (
           <RemoveComponent {...props} />
         ) : null}
       </Wrapper>
-      {removable && screenType === 'xs' ? (
+      {removable && screenType === 'xs' && RemoveComponent === RemoveHandle ? (
         <RemoveComponent {...props} />
       ) : null}
     </React.Fragment>
@@ -113,6 +128,7 @@ Item.propTypes = {
   propertyValue: PropTypes.any.isRequired, // eslint-disable-line
   propertySchema: PropTypes.shape().isRequired,
   propertyUiSchema: PropTypes.shape().isRequired,
+  propertyMeta: PropTypes.any.isRequired, // eslint-disable-line
   orderable: PropTypes.bool.isRequired,
   removable: PropTypes.bool.isRequired,
   OrderComponent: PropTypes.elementType.isRequired,
@@ -120,21 +136,27 @@ Item.propTypes = {
   PropertyField: PropTypes.elementType.isRequired,
   onItemRef: PropTypes.func.isRequired,
   panHandlers: PropTypes.shape(),
+  auto: PropTypes.bool,
   style: StylePropType,
+  itemStyle: StylePropType,
   onMouseDown: PropTypes.func,
   onMouseUp: PropTypes.func,
   onTouchStart: PropTypes.func,
   onTouchEnd: PropTypes.func,
+  onClick: PropTypes.func,
   propertyErrors: PropTypes.any, // eslint-disable-line
 };
 
 Item.defaultProps = {
   panHandlers: {},
+  auto: false,
   style: null,
+  itemStyle: null,
   onMouseDown: noop,
   onMouseUp: noop,
   onTouchStart: noop,
   onTouchEnd: noop,
+  onClick: noop,
   propertyErrors: undefined,
 };
 

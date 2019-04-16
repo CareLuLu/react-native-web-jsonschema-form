@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const TextWidget = withHandlers({
+const TextInputWidget = withHandlers({
   onWrappedFocus: ({ name, onFocus }) => () => onFocus(name),
   onWrappedChange: ({
     name,
@@ -93,7 +93,7 @@ const TextWidget = withHandlers({
   );
 });
 
-TextWidget.propTypes = {
+TextInputWidget.propTypes = {
   name: PropTypes.string.isRequired,
   uiSchema: PropTypes.shape({}).isRequired,
   hasError: PropTypes.bool.isRequired,
@@ -115,7 +115,7 @@ TextWidget.propTypes = {
   textParser: PropTypes.func,
 };
 
-TextWidget.defaultProps = {
+TextInputWidget.defaultProps = {
   style: styles.empty,
   mask: null,
   onFocus: noop,
@@ -134,4 +134,4 @@ TextWidget.defaultProps = {
   textParser: value => value,
 };
 
-export default TextWidget;
+export default TextInputWidget;
