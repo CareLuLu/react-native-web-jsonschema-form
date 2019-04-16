@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import TextWidget from './TextWidget';
+import TextInputWidget from './TextInputWidget';
 
-const PhoneWidget = props => <TextWidget {...props} />;
+const PhoneWidget = props => <TextInputWidget {...props} />;
 
 PhoneWidget.propTypes = {
   mask: PropTypes.string,

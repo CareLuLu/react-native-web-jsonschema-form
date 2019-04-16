@@ -1,11 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import TextWidget from './TextWidget';
+import TextInputWidget from './TextInputWidget';
 
 const TextareaWidget = (props) => {
   const { uiSchema } = props;
   const numberOfLines = (uiSchema['ui:options'] && uiSchema['ui:options'].rows) || 2;
-  return <TextWidget {...props} multiline numberOfLines={numberOfLines} />;
+  return <TextInputWidget {...props} multiline numberOfLines={numberOfLines} />;
 };
 
 TextareaWidget.propTypes = {

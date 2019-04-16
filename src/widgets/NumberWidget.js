@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import TextWidget from './TextWidget';
+import { withHandlers, compose } from 'recompact';
+import TextInputWidget from './TextInputWidget';
 
 /* eslint no-param-reassign: 0 */
 const INITIAL_ZEROS = /^0*/g;
@@ -111,7 +112,30 @@ function maskValue(text, settings) {
   return maskValueStandard(value, settings);
 }
 
-const mask = settings => value => maskValue(value, Object.assign({
+const maskHandler = settings => value => maskValue(value, settings);
+
+const textParser = value => (parseFloat(value) || null);
+
+const NumberWidget = compose(
+  withHandlers({
+    mask: maskHandler,
+  }),
+)(props => (
+  <TextInputWidget {...props} keyboardType="number-pad" textParser={textParser} />
+));
+
+NumberWidget.propTypes = {
+  prefix: PropTypes.string,
+  suffix: PropTypes.string,
+  affixesStay: PropTypes.bool,
+  thousands: PropTypes.string,
+  decimal: PropTypes.string,
+  precision: PropTypes.number,
+  allowNegative: PropTypes.bool,
+  allowEmpty: PropTypes.bool,
+};
+
+NumberWidget.defaultProps = {
   prefix: '',
   suffix: '',
   affixesStay: true,
@@ -120,12 +144,6 @@ const mask = settings => value => maskValue(value, Object.assign({
   precision: 2,
   allowNegative: false,
   allowEmpty: false,
-}, settings));
-
-const textParser = value => (parseFloat(value) || null);
-
-const NumberWidget = props => (
-  <TextWidget {...props} keyboardType="number-pad" mask={mask(props)} textParser={textParser} />
-);
+};
 
 export default NumberWidget;

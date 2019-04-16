@@ -94,9 +94,8 @@ export const getStructure = (
   compiledUiSchema = {},
 ) => {
   if (!schema) {
-    throw new Error(`"${key}" is not included in the schema definition.`);
-  }
-  if (schema.type === 'object') {
+    // throw new Error(`"${key}" is not included in the schema definition.`);
+  } else if (schema.type === 'object') {
     const schemaNode = {
       ...schema,
       properties: {},
@@ -186,19 +185,19 @@ export const merge = (destination, source = {}) => {
   return destination;
 };
 
-export const getValues = (data, schema, key, casting = true) => {
+export const getValues = (data, schema, key, casting = true, meta = false) => {
   let value = key ? get(data, key) : data;
   if (schema.type === 'object') {
     value = isPlainObject(value) ? value : {};
     const node = {};
     each(schema.properties, (propertySchema, propertyKey) => {
-      node[propertyKey] = getValues(value, propertySchema, propertyKey, casting);
+      node[propertyKey] = getValues(value, propertySchema, propertyKey, casting, meta);
     });
     return node;
   }
   if (schema.type === 'array') {
     value = isArray(value) ? value : [];
-    return value.map(item => getValues(item, schema.items, null, casting));
+    return value.map(item => getValues(item, schema.items, null, casting, meta));
   }
   if (casting) {
     if (value === null || value === undefined) {
@@ -220,9 +219,13 @@ export const getValues = (data, schema, key, casting = true) => {
         default: break;
       }
     }
+  } else if (meta) {
+    value = {};
   }
   return value;
 };
+
+export const getMeta = (data, schema, key) => getValues(data, schema, key, false, true);
 
 export const getErrors = (data, schema, key) => getValues(data, schema, key, false);
 

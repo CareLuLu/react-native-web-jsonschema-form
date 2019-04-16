@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import TextWidget from './TextWidget';
+import TextInputWidget from './TextInputWidget';
 
-const ZipWidget = props => <TextWidget {...props} />;
+const ZipWidget = props => <TextInputWidget {...props} />;
 
 ZipWidget.propTypes = {
   mask: PropTypes.string,
