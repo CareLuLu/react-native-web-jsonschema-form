@@ -155,11 +155,12 @@ class Form extends React.Component {
         metaSchemaProp: nextProps.metaSchema,
         values: cloneDeep(values),
         errors: cloneDeep(getErrors(nextProps.errorSchema, schema)),
-        meta: cloneDeep(getMeta(nextProps.metaSchema || values, schema)),
+        meta: cloneDeep(getMeta(nextProps.metaSchema || values, schema, uiSchema)),
       };
     } else {
       const {
         schema,
+        uiSchema,
         values,
         formDataProp,
         errorSchemaProp,
@@ -191,7 +192,7 @@ class Form extends React.Component {
         state = Object.assign(state || {}, {
           event: 'rebuild:meta',
           metaSchemaProp: nextProps.metaSchema,
-          meta: cloneDeep(getMeta(nextProps.metaSchema || values, schema)),
+          meta: cloneDeep(getMeta(nextProps.metaSchema || values, schema, uiSchema)),
         });
       }
     }
@@ -231,7 +232,7 @@ class Form extends React.Component {
       metaSchemaProp: metaSchema,
       values: cloneDeep(formDataProp),
       errors: cloneDeep(getErrors(errorSchema, structure.schema)),
-      meta: cloneDeep(getMeta(metaSchema || formDataProp, structure.schema)),
+      meta: cloneDeep(getMeta(metaSchema || formDataProp, structure.schema, structure.uiSchema)),
     };
     onRef(this);
   }
@@ -353,13 +354,13 @@ class Form extends React.Component {
   };
 
   onSubmit = () => {
-    let { values } = this.state;
+    const { meta, values } = this.state;
     const { onSubmit, filterEmptyValues } = this.props;
+    let nextValues = this.filterDisabled(values, meta);
     if (filterEmptyValues) {
-      values = this.filterEmpty(values);
+      nextValues = this.filterEmpty(nextValues);
     }
-
-    const event = new FormEvent('submit', { values });
+    const event = new FormEvent('submit', { values: nextValues });
     this.run(onSubmit(event), (response) => {
       if (event.allowed()) {
         this.onSuccess(response);
@@ -459,6 +460,26 @@ class Form extends React.Component {
         empty = value === '' || value === undefined || value === null;
       }
       if (required[toPath(name, '[]')] || !empty) {
+        add(value, k);
+      }
+    });
+    return filteredValues;
+  }
+
+  filterDisabled(values, meta, path = '', type = 'object') {
+    const self = this;
+    const filteredValues = type === 'object' ? {} : [];
+    const add = type === 'object' ? addToObject(filteredValues) : addToArray(filteredValues);
+    each(values, (v, k) => {
+      const disabled = !!(meta && meta[k] && meta[k]['ui:disabled']);
+      if (!disabled) {
+        const name = path ? `${path}.${k}` : k;
+        let value = v;
+        if (isArray(v)) {
+          value = self.filterDisabled(v, (meta && meta[k]) || [], name, 'array');
+        } else if (isPlainObject(v)) {
+          value = self.filterDisabled(v, (meta && meta[k]) || {}, name, 'object');
+        }
         add(value, k);
       }
     });

@@ -34,6 +34,7 @@ class AbstractField extends React.Component {
     noTitle: PropTypes.bool,
     titleOnly: PropTypes.bool,
     zIndex: PropTypes.number,
+    meta: PropTypes.any, // eslint-disable-line
     errors: PropTypes.any, // eslint-disable-line
     value: PropTypes.any, // eslint-disable-line
   };
@@ -85,12 +86,13 @@ class AbstractField extends React.Component {
       noTitle,
       required,
     } = this.props;
-    if (
+    const hasTitle = !(
       noTitle
       || uiSchema['ui:title'] === false
       || schema.type === 'object'
       || schema.type === 'array'
-    ) {
+    );
+    if (!uiSchema['ui:toggleable'] && !hasTitle) {
       return null;
     }
     const { LabelWidget } = widgets;
@@ -99,7 +101,14 @@ class AbstractField extends React.Component {
       title += '*';
     }
     return (
-      <LabelWidget hasError={hasError} auto={uiSchema['ui:inline']} {...(uiSchema['ui:titleProps'] || {})}>
+      <LabelWidget
+        {...this.props}
+        toggleable={!!uiSchema['ui:toggleable']}
+        hasTitle={hasTitle}
+        hasError={hasError}
+        auto={uiSchema['ui:inline']}
+        {...(uiSchema['ui:titleProps'] || {})}
+      >
         {title}
       </LabelWidget>
     );
@@ -109,6 +118,7 @@ class AbstractField extends React.Component {
     const {
       id,
       name,
+      meta,
       schema,
       uiSchema,
       widgets,
@@ -180,7 +190,7 @@ class AbstractField extends React.Component {
               auto={uiSchema['ui:inline']}
               hasError={hasError}
               placeholder={placeholder}
-              disabled={!!uiSchema['ui:disabled']}
+              disabled={!!(meta && meta['ui:disabled'])}
               readonly={!!uiSchema['ui:readonly']}
               {...(uiSchema['ui:widgetProps'] || {})}
             />

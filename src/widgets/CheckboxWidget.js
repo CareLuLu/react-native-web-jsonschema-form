@@ -61,7 +61,14 @@ const CheckboxWidget = withHandlers({
   if (gridItemType !== 'grid' || gridItemLength <= 1 || Screen.getType() === 'xs') {
     css.push(styles.alone);
   }
-  if (adjustTitle && gridItemType === 'grid' && gridItemLength > 1 && Screen.getType() !== 'xs' && uiSchema['ui:title'] === false) {
+  if (
+    adjustTitle
+    && gridItemType === 'grid'
+    && gridItemLength > 1
+    && Screen.getType() !== 'xs'
+    && uiSchema['ui:title'] === false
+    && !uiSchema['ui:toggleable']
+  ) {
     css.push(styles.adjustTitle);
   }
   css.push(auto ? styles.auto : styles.fullWidth);

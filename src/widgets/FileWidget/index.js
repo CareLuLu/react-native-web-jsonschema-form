@@ -580,8 +580,15 @@ const FileWidget = compose(
   ...props
 }) => (
   <React.Fragment>
-    {title !== false ? (
-      <LabelWidget hasError={hasError} auto={propertyUiSchema['ui:inline']} {...propertyUiSchema['ui:titleProps']}>
+    {title !== false || uiSchema['ui:toggleable'] ? (
+      <LabelWidget
+        {...props}
+        toggleable={!!uiSchema['ui:toggleable']}
+        hasTitle={title !== false}
+        hasError={hasError}
+        auto={propertyUiSchema['ui:inline']}
+        {...propertyUiSchema['ui:titleProps']}
+      >
         {title}
       </LabelWidget>
     ) : null}
