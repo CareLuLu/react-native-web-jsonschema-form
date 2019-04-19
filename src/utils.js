@@ -185,19 +185,37 @@ export const merge = (destination, source = {}) => {
   return destination;
 };
 
-export const getValues = (data, schema, key, casting = true, meta = false) => {
+export const getValues = (data, schema, key, casting = true, uiSchema = false) => {
   let value = key ? get(data, key) : data;
   if (schema.type === 'object') {
     value = isPlainObject(value) ? value : {};
     const node = {};
     each(schema.properties, (propertySchema, propertyKey) => {
-      node[propertyKey] = getValues(value, propertySchema, propertyKey, casting, meta);
+      node[propertyKey] = getValues(
+        value,
+        propertySchema,
+        propertyKey,
+        casting,
+        uiSchema && uiSchema[propertyKey],
+      );
     });
+    if (uiSchema) {
+      value['ui:disabled'] = (uiSchema && uiSchema['ui:disabled']) || false;
+    }
     return node;
   }
   if (schema.type === 'array') {
     value = isArray(value) ? value : [];
-    return value.map(item => getValues(item, schema.items, null, casting, meta));
+    if (uiSchema) {
+      value['ui:disabled'] = (uiSchema && uiSchema['ui:disabled']) || false;
+    }
+    return value.map(item => getValues(
+      item,
+      schema.items,
+      null,
+      casting,
+      uiSchema && uiSchema.items,
+    ));
   }
   if (casting) {
     if (value === null || value === undefined) {
@@ -219,13 +237,15 @@ export const getValues = (data, schema, key, casting = true, meta = false) => {
         default: break;
       }
     }
-  } else if (meta) {
-    value = {};
+  } else if (uiSchema) {
+    value = {
+      'ui:disabled': (uiSchema && uiSchema['ui:disabled']) || false,
+    };
   }
   return value;
 };
 
-export const getMeta = (data, schema, key) => getValues(data, schema, key, false, true);
+export const getMeta = (data, schema, uiSchema) => getValues(data, schema, null, false, uiSchema);
 
 export const getErrors = (data, schema, key) => getValues(data, schema, key, false);
 
@@ -348,3 +368,147 @@ export const normalized = (value) => {
   }
   return value;
 };
+
+export const viewStyleKeys = [
+  'animationDelay',
+  'animationDirection',
+  'animationDuration',
+  'animationFillMode',
+  'animationIterationCount',
+  'animationName',
+  'animationPlayState',
+  'animationTimingFunction',
+  'transitionDelay',
+  'transitionDuration',
+  'transitionProperty',
+  'transitionTimingFunction',
+  'borderColor',
+  'borderBottomColor',
+  'borderEndColor',
+  'borderLeftColor',
+  'borderRightColor',
+  'borderStartColor',
+  'borderTopColor',
+  'borderRadius',
+  'borderBottomEndRadius',
+  'borderBottomLeftRadius',
+  'borderBottomRightRadius',
+  'borderBottomStartRadius',
+  'borderTopEndRadius',
+  'borderTopLeftRadius',
+  'borderTopRightRadius',
+  'borderTopStartRadius',
+  'borderStyle',
+  'borderBottomStyle',
+  'borderEndStyle',
+  'borderLeftStyle',
+  'borderRightStyle',
+  'borderStartStyle',
+  'borderTopStyle',
+  'cursor',
+  'touchAction',
+  'userSelect',
+  'willChange',
+  'alignContent',
+  'alignItems',
+  'alignSelf',
+  'backfaceVisibility',
+  'borderWidth',
+  'borderBottomWidth',
+  'borderEndWidth',
+  'borderLeftWidth',
+  'borderRightWidth',
+  'borderStartWidth',
+  'borderTopWidth',
+  'bottom',
+  'boxSizing',
+  'direction',
+  'display',
+  'end',
+  'flex',
+  'flexBasis',
+  'flexDirection',
+  'flexGrow',
+  'flexShrink',
+  'flexWrap',
+  'height',
+  'justifyContent',
+  'left',
+  'margin',
+  'marginBottom',
+  'marginHorizontal',
+  'marginEnd',
+  'marginLeft',
+  'marginRight',
+  'marginStart',
+  'marginTop',
+  'marginVertical',
+  'maxHeight',
+  'maxWidth',
+  'minHeight',
+  'minWidth',
+  'order',
+  'overflow',
+  'overflowX',
+  'overflowY',
+  'padding',
+  'paddingBottom',
+  'paddingHorizontal',
+  'paddingEnd',
+  'paddingLeft',
+  'paddingRight',
+  'paddingStart',
+  'paddingTop',
+  'paddingVertical',
+  'position',
+  'right',
+  'start',
+  'top',
+  'visibility',
+  'width',
+  'zIndex',
+  'aspectRatio',
+  'gridAutoColumns',
+  'gridAutoFlow',
+  'gridAutoRows',
+  'gridColumnEnd',
+  'gridColumnGap',
+  'gridColumnStart',
+  'gridRowEnd',
+  'gridRowGap',
+  'gridRowStart',
+  'gridTemplateColumns',
+  'gridTemplateRows',
+  'gridTemplateAreas',
+  'shadowColor',
+  'shadowOffset',
+  'shadowOpacity',
+  'shadowRadius',
+  'shadowSpread',
+  'perspective',
+  'perspectiveOrigin',
+  'transform',
+  'transformOrigin',
+  'transformStyle',
+  'backgroundColor',
+  'opacity',
+  'elevation',
+  'backgroundAttachment',
+  'backgroundBlendMode',
+  'backgroundClip',
+  'backgroundImage',
+  'backgroundOrigin',
+  'backgroundPosition',
+  'backgroundRepeat',
+  'backgroundSize',
+  'boxShadow',
+  'clip',
+  'filter',
+  'outline',
+  'outlineColor',
+  'overscrollBehavior',
+  'overscrollBehaviorX',
+  'overscrollBehaviorY',
+  'WebkitMaskImage',
+  'WebkitOverflowScrolling',
+];

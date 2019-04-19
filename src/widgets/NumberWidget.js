@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { repeat } from 'lodash';
 import { withHandlers, compose } from 'recompact';
 import TextInputWidget from './TextInputWidget';
 
@@ -112,16 +113,37 @@ function maskValue(text, settings) {
   return maskValueStandard(value, settings);
 }
 
-const maskHandler = settings => value => maskValue(value, settings);
+const maskHandler = settings => (value, direction) => {
+  let textValue = value;
+  if (direction === 'in') {
+    const { decimal, precision } = settings;
+    if (precision > 0) {
+      const parts = textValue.split(decimal);
+      if (parts.length < 2) {
+        parts.push('0');
+      }
+      if (parts[1].length < precision) {
+        parts[1] += repeat('0', precision - parts[1].length);
+        textValue = parts.join(decimal);
+      }
+    }
+  }
+  return maskValue(textValue, settings);
+};
 
-const textParser = value => (parseFloat(value) || null);
+const textParserHandler = ({ thousands, decimal }) => (value) => {
+  const thousandsRegex = new RegExp(`\\${thousands}`, 'g');
+  const decimalRegex = new RegExp(`\\${decimal}`);
+  return parseFloat(value.replace(thousandsRegex, '').replace(decimalRegex, '.')) || null;
+};
 
 const NumberWidget = compose(
   withHandlers({
     mask: maskHandler,
+    textParser: textParserHandler,
   }),
 )(props => (
-  <TextInputWidget {...props} keyboardType="number-pad" textParser={textParser} />
+  <TextInputWidget {...props} keyboardType="number-pad" />
 ));
 
 NumberWidget.propTypes = {
@@ -133,6 +155,7 @@ NumberWidget.propTypes = {
   precision: PropTypes.number,
   allowNegative: PropTypes.bool,
   allowEmpty: PropTypes.bool,
+  reverse: PropTypes.bool,
 };
 
 NumberWidget.defaultProps = {
@@ -144,6 +167,7 @@ NumberWidget.defaultProps = {
   precision: 2,
   allowNegative: false,
   allowEmpty: false,
+  reverse: false,
 };
 
 export default NumberWidget;

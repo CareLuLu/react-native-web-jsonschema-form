@@ -226,11 +226,19 @@ const ArrayWidget = compose(
   } = props;
   const { LabelWidget } = widgets;
   const hasError = isArray(errors) && errors.length > 0 && !errors.hidden;
-
+  const hasTitle = uiSchema['ui:title'] !== false;
+  const toggleable = !!uiSchema['ui:toggleable'];
   return (
     <React.Fragment>
-      {uiSchema['ui:title'] !== false ? (
-        <LabelWidget hasError={hasError} auto={uiSchema['ui:inline']} {...uiSchema['ui:titleProps']}>
+      {hasTitle || toggleable ? (
+        <LabelWidget
+          {...this.props}
+          toggleable={toggleable}
+          hasTitle={hasTitle}
+          hasError={hasError}
+          auto={uiSchema['ui:inline']}
+          {...uiSchema['ui:titleProps']}
+        >
           {title}
         </LabelWidget>
       ) : null}

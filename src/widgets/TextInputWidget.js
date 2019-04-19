@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Platform } from 'react-native';
-import { noop, isString } from 'lodash';
+import { noop, isString, isFunction } from 'lodash';
 import { withHandlers } from 'recompact';
 import TextInput from 'react-native-web-ui-components/TextInput';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
@@ -30,8 +30,8 @@ const TextInputWidget = withHandlers({
     if (!mask) {
       return onChange(textParser(text), name);
     }
-    if (typeof mask === 'function') {
-      return onChange(textParser(mask(text)), name);
+    if (isFunction(mask)) {
+      return onChange(textParser(mask(text, 'out')), name);
     }
     return onChange(textParser(formatMask(text, mask)), name);
   },
@@ -57,12 +57,22 @@ const TextInputWidget = withHandlers({
   textParser,
   ...props
 }) => {
-  if (mask && isString(mask) && value !== null && value !== undefined) {
-    const maskedValue = textParser(formatMask(value, mask));
-    if (value !== maskedValue) {
-      setTimeout(() => onChange(maskedValue, name, {
-        silent: true,
-      }));
+  let textValue = '';
+  if (value !== null && value !== undefined) {
+    if (isString(mask)) {
+      textValue = formatMask(`${value}`, mask);
+    } else if (isFunction(mask)) {
+      textValue = mask(`${value}`, 'in');
+    } else {
+      textValue = value;
+    }
+    if (mask) {
+      const maskedValue = textParser(textValue);
+      if (value !== maskedValue) {
+        setTimeout(() => onChange(maskedValue, name, {
+          silent: true,
+        }));
+      }
     }
   }
   const currentStyle = [
@@ -86,7 +96,7 @@ const TextInputWidget = withHandlers({
       multiline={multiline}
       numberOfLines={numberOfLines}
       keyboardType={Platform.OS !== 'web' ? keyboardType : undefined}
-      value={(value !== undefined && value !== null ? `${value}` : '') || uiSchema['ui:emptyValue'] || ''}
+      value={textValue || uiSchema['ui:emptyValue'] || ''}
       placeholder={placeholder}
       secureTextEntry={secureTextEntry}
     />
