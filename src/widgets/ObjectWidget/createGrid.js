@@ -111,10 +111,13 @@ const createGridItem = (
   const { widgets } = params;
   if (gridItem.type === 'label') {
     const Widget = widgets.LabelWidget;
-    const Label = () => (
+    const Label = props => (
       <Widget
+        {...props}
         key={key}
         hasError={false}
+        hasTitle
+        toggleable={false}
         style={[first ? styles.labelTop : styles.label, gridItem.style]}
       >
         {gridItem.children}
