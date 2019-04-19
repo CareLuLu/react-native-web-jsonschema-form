@@ -232,7 +232,7 @@ const ArrayWidget = compose(
     <React.Fragment>
       {hasTitle || toggleable ? (
         <LabelWidget
-          {...this.props}
+          {...props}
           toggleable={toggleable}
           hasTitle={hasTitle}
           hasError={hasError}
