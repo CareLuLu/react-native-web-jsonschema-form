@@ -16,17 +16,16 @@ const Wrapper = ({
   children,
   style,
   itemStyle,
+  zIndex,
   ...props
 }) => {
-  const { value, index } = props;
-  const zIndex = { zIndex: value.length - index };
   if (Platform.OS === 'web') {
     const css = {
       display: 'flex',
       alignItems: 'flex-start',
       width: '100%',
       flexDirection: 'row',
-      ...zIndex,
+      zIndex,
       ...StyleSheet.flatten(itemStyle),
       ...style,
     };
@@ -40,6 +39,7 @@ const Wrapper = ({
 };
 
 Wrapper.propTypes = {
+  zIndex: PropTypes.number.isRequired,
   value: PropTypes.arrayOf(PropTypes.any).isRequired,
   index: PropTypes.number.isRequired,
   children: PropTypes.node.isRequired,
@@ -56,6 +56,7 @@ const Item = ({
   onItemRef,
   panHandlers,
   style,
+  zIndex,
   itemStyle,
   onMouseDown,
   onTouchStart,
@@ -88,6 +89,7 @@ const Item = ({
         style={style}
         value={value}
         index={index}
+        zIndex={zIndex}
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}
         onMouseUp={onMouseUp}

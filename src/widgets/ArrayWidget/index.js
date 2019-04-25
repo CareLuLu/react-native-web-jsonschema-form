@@ -14,12 +14,12 @@ import {
 } from 'recompact';
 import { titleize } from 'underscore.string';
 import Screen from 'react-native-web-ui-components/Screen';
-import Button from 'react-native-web-ui-components/Button';
 import {
   getTitle,
   getComponent,
   FIELD_TITLE,
 } from '../../utils';
+import AddHandle from './AddHandle';
 import OrderHandle from './OrderHandle';
 import RemoveHandle from './RemoveHandle';
 import DraggableItem from './DraggableItem';
@@ -112,6 +112,7 @@ const getProps = ({
     addable: options.addable !== false,
     removable: options.removable !== false,
     orderable: options.orderable !== false,
+    AddComponent: options.AddComponent || AddHandle,
     OrderComponent: options.OrderComponent || OrderHandle,
     RemoveComponent: options.RemoveComponent || RemoveHandle,
   };
@@ -210,7 +211,6 @@ const ArrayWidget = compose(
     name,
     value,
     title,
-    theme,
     addLabel,
     addable,
     onAdd,
@@ -223,11 +223,13 @@ const ArrayWidget = compose(
     propertyUiSchema,
     PropertyComponent,
     minimumNumberOfItems,
+    AddComponent,
   } = props;
   const { LabelWidget } = widgets;
   const hasError = isArray(errors) && errors.length > 0 && !errors.hidden;
   const hasTitle = uiSchema['ui:title'] !== false;
   const toggleable = !!uiSchema['ui:toggleable'];
+  const missingItems = Math.max(0, minimumNumberOfItems - value.length);
   return (
     <React.Fragment>
       {hasTitle || toggleable ? (
@@ -265,11 +267,11 @@ const ArrayWidget = compose(
           propertyErrors={errors && errors[index]}
           propertyUiSchema={adjustUiSchema(propertyUiSchema, index)}
           index={index}
-          zIndex={dragging === index ? value.length : (value.length - index)}
+          zIndex={(dragging === index ? value.length : (value.length - index)) + 1}
           noTitle={screenType !== 'xs'}
         />
       ))}
-      {times(Math.max(0, minimumNumberOfItems - value.length), index => (
+      {times(missingItems, index => (
         <PropertyComponent
           {...props}
           key={`${review}.${name}.${index}`}
@@ -279,14 +281,12 @@ const ArrayWidget = compose(
           propertyErrors={errors && errors[index]}
           propertyUiSchema={adjustUiSchema(propertyUiSchema, index)}
           index={index}
-          zIndex={dragging === index ? value.length : (value.length - index)}
+          zIndex={(dragging === index ? missingItems : (missingItems - index)) + 1}
           noTitle={screenType !== 'xs'}
         />
       ))}
       {addable ? (
-        <Button auto small flat={false} radius type={theme.colors.primary} onPress={onAdd}>
-          {addLabel}
-        </Button>
+        <AddComponent {...props} onPress={onAdd} addLabel={addLabel} />
       ) : null}
     </React.Fragment>
   );

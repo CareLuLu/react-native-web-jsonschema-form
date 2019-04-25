@@ -21,9 +21,29 @@ const styles = StyleSheet.create({
   checkAll: {
     paddingTop: Screen.getType() === 'xs' ? 0 : 10,
   },
+  dateContainer: {
+    minWidth: 130,
+    maxWidth: 130,
+    width: 130,
+    marginRight: 10,
+  },
+  timesContainer: {
+    minWidth: 250,
+    flex: 1,
+  },
+  checkbox: {
+    height: 40,
+    marginBottom: 10,
+  },
+  checkboxXs: {
+    height: 23,
+    marginBottom: 5,
+  },
 });
 
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+const alwaysTrue = () => true;
 
 const fillSchedule = (value, timesAttribute, dateAttribute) => {
   const schedule = [];
@@ -51,8 +71,7 @@ const checkboxParserHandler = ({ dateAttribute, timesAttribute }) => value => va
   [timesAttribute]: v.times,
 }));
 
-const dateParserHandler = ({ dateAttribute, timesAttribute }) => value => value
-  .filter(v => (v[dateAttribute] || v[timesAttribute].length > 0));
+const dateParserHandler = () => value => value;
 
 const onChangeHandler = ({
   name,
@@ -66,6 +85,9 @@ const onChangeHandler = ({
     const path = propertyName.split('.');
     const [key] = path.splice(-1, 1);
     const index = parseInt(path.splice(-1, 1)[0], 10);
+    while (value.length <= index) {
+      value.push({ [dateAttribute]: null, [timesAttribute]: '' });
+    }
     value[index][key] = propertyValue;
     onChange(scheduleParser(value), name, {
       ...params,
@@ -199,6 +221,8 @@ const getProps = ({
     };
   }
 
+  const filterTime = get(uiSchema, ['items', timesAttribute, 'ui:widgetProps', 'filterTime'], alwaysTrue);
+
   const propertyUiSchema = {
     'ui:title': false,
     'ui:options': {
@@ -210,11 +234,8 @@ const getProps = ({
       'ui:title': false,
       'ui:grid': [
         {
-          type: 'grid',
-          columns: [
-            { xs: 12, sm: 3, md: 2 },
-            { xs: 12, sm: 9, md: 10 },
-          ],
+          type: 'row',
+          xs: 12,
           children: [
             dateAttribute,
             timesAttribute,
@@ -222,23 +243,62 @@ const getProps = ({
         },
       ],
       [dateAttribute]: {
+        ...get(uiSchema, ['items', dateAttribute], {}),
         'ui:title': false,
         'ui:widget': dateWidget,
         'ui:widgetProps': dateWidget === 'checkbox'
-          ? days.map(text => ({ text, adjustTitle: false }))
+          ? days.map((text, i) => ({
+            ...get(uiSchema, ['items', dateAttribute, 'ui:widgetProps'], {}),
+            text,
+            adjustTitle: false,
+            style: [
+              Screen.getType() === 'xs' ? styles.checkboxXs : styles.checkbox,
+              i === 0 ? { marginTop: Screen.getType() !== 'xs' ? 4 : 0 } : null,
+              i === 0 && Screen.getType() === 'xs' ? { marginBottom: 9 } : null,
+            ],
+          }))
           : get(uiSchema, ['items', dateAttribute, 'ui:widgetProps'], {}),
       },
       [timesAttribute]: {
+        ...get(uiSchema, ['items', timesAttribute], {}),
         'ui:title': false,
         'ui:widget': 'timeRange',
         'ui:widgetProps': times(7, i => ({
+          ...get(uiSchema, ['items', timesAttribute, 'ui:widgetProps'], {}),
           encoder: 'string',
           header: i === 0,
           disabled: checkbox && !adjustedValue[i][dateAttribute],
+          filterTime: time => filterTime(time, get(value, i, {})),
         })),
+        'ui:container': {
+          style: styles.timesContainer,
+        },
       },
     },
   };
+  const container = get(uiSchema, ['items', dateAttribute, 'ui:container'], {});
+  propertyUiSchema.items[dateAttribute]['ui:container'] = {
+    ...container,
+  };
+  propertyUiSchema.items[dateAttribute]['ui:container'].style = [
+    styles.dateContainer,
+    container.style || null,
+  ];
+  if (!checkbox) {
+    const widgetProps = propertyUiSchema.items[dateAttribute]['ui:widgetProps'];
+    propertyUiSchema.items[dateAttribute]['ui:widgetProps'] = [
+      {
+        ...widgetProps,
+        style: [
+          { marginTop: Screen.getType() !== 'xs' ? 4 : 0 },
+          widgetProps.style || null,
+        ],
+      },
+      widgetProps,
+    ];
+  }
+
+
   const options = { ...(propertyUiSchema['ui:options'] || {}) };
   options.orderable = false;
   if (checkbox) {

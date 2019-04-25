@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
 });
 
 const OrderHandle = ({
+  theme,
   handle,
   panHandlers,
   titleOnly,
@@ -32,7 +33,7 @@ const OrderHandle = ({
     <Text
       className={handle}
       auto
-      type="gray"
+      type={theme.colors.text}
       style={[
         styles.order,
         screenType === 'xs' ? styles.xs : null,
@@ -45,6 +46,7 @@ const OrderHandle = ({
 );
 
 OrderHandle.propTypes = {
+  theme: PropTypes.shape().isRequired,
   screenType: PropTypes.string.isRequired,
   handle: PropTypes.string.isRequired,
   titleOnly: PropTypes.bool.isRequired,

@@ -32,6 +32,9 @@ const timePickerAttributes = [
   'minTime',
   'maxTime',
   'interval',
+  'filterTime',
+  'selectedStyle',
+  'unselectedStyle',
 ];
 
 const TimeRangeWidget = withHandlers({

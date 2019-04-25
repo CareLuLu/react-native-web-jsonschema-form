@@ -21,6 +21,7 @@ const styles = StyleSheet.create({
 });
 
 const RemoveHandle = ({
+  theme,
   onRemovePress,
   titleOnly,
   screenType,
@@ -29,7 +30,7 @@ const RemoveHandle = ({
     return (
       <Link
         auto
-        type="pink"
+        type={theme.colors.primary}
         onPress={onRemovePress}
         style={[
           styles.remove,
@@ -44,7 +45,7 @@ const RemoveHandle = ({
   return (
     <Text
       auto
-      type="pink"
+      type={theme.colors.primary}
       style={[
         styles.remove,
         titleOnly ? styles.hidden : null,
@@ -56,6 +57,7 @@ const RemoveHandle = ({
 };
 
 RemoveHandle.propTypes = {
+  theme: PropTypes.shape().isRequired,
   onRemovePress: PropTypes.func.isRequired,
   titleOnly: PropTypes.bool.isRequired,
   screenType: PropTypes.string.isRequired,
