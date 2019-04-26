@@ -1,7 +1,14 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import Button from 'react-native-web-ui-components/Button';
 import { withTheme } from 'react-native-web-ui-components/Theme';
+
+const styles = StyleSheet.create({
+  button: {
+    marginBottom: 5,
+  },
+});
 
 const SubmitButton = ({ theme, text, onPress }) => (
   <Button
@@ -10,6 +17,8 @@ const SubmitButton = ({ theme, text, onPress }) => (
     flat={false}
     type={theme.colors.primary}
     onPress={onPress}
+    nomargin
+    style={styles.button}
   >
     {text}
   </Button>
