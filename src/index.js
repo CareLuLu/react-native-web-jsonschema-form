@@ -397,7 +397,7 @@ class Form extends React.Component {
     const { onError } = this.props;
     let errorSchema = err;
     if (isError(errorSchema)) {
-      errorSchema = { Error: err.message };
+      errorSchema = { Error: [err.message] };
     }
     const errors = getErrors(errorSchema || {}, schema);
     const exceptions = getExceptions(errorSchema, errors);
