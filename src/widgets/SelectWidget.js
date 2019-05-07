@@ -5,7 +5,15 @@ import Select from 'react-native-web-ui-components/Select';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
 
 const SelectWidget = withHandlers({
-  onWrappedChange: ({ name, onChange }) => value => onChange(value, name),
+  onWrappedChange: ({ name, schema, onChange }) => (value) => {
+    let parsedValue = value;
+    if (schema.type === 'number' || schema.type === 'integer') {
+      parsedValue = parseFloat(value) || null;
+    } else if (schema.type === 'boolean') {
+      parsedValue = value === 'true';
+    }
+    onChange(parsedValue, name);
+  },
   onWrappedFocus: ({ name, onFocus }) => () => onFocus(name),
 })(({
   schema,
@@ -32,8 +40,8 @@ const SelectWidget = withHandlers({
       hasError={hasError}
       auto={auto}
       name={name}
-      value={value}
-      values={values}
+      value={`${value}`}
+      values={values.map(v => `${v}`)}
       labels={labels}
       autoFocus={autoFocus}
       onFocus={onWrappedFocus}

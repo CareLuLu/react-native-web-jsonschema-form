@@ -1,6 +1,6 @@
 {
   "name": "react-native-web-jsonschema-form",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "private": false,
   "main": "index.js",
   "scripts": {
