@@ -1,5 +1,7 @@
 # react-native-web-jsonschema-form
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1b97eb598b8f4d208eea4be47169169b)](https://app.codacy.com/app/CareLuLu/react-native-web-jsonschema-form?utm_source=github.com&utm_medium=referral&utm_content=CareLuLu/react-native-web-jsonschema-form&utm_campaign=Badge_Grade_Dashboard)
+
 Render customizable forms using [JSON schema](http://json-schema.org/) for responsive websites and [Expo](https://expo.io/) apps (both iOS and Android). This library was inpired on [react-jsonschema-form](https://github.com/mozilla-services/react-jsonschema-form) but was built with [React Native](https://facebook.github.io/react-native/) and [React Native Web](https://github.com/necolas/react-native-web) in mind.
 
 ## Installation
