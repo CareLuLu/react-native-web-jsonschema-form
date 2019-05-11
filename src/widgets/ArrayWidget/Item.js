@@ -124,6 +124,7 @@ const Item = ({
 Item.propTypes = {
   value: PropTypes.arrayOf(PropTypes.any).isRequired,
   index: PropTypes.number.isRequired,
+  zIndex: PropTypes.number.isRequired,
   focus: PropTypes.string.isRequired,
   screenType: PropTypes.string.isRequired,
   propertyName: PropTypes.string.isRequired,
