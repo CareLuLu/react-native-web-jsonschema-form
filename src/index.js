@@ -314,11 +314,12 @@ class Form extends React.Component {
       nextMeta,
       nextErrors,
       focus: nextFocus,
+      path: toPath(name),
       update: [nextFocus, name].concat(update),
     });
     this.run(onChange(event), () => {
       if (event.allowed()) {
-        const path = toPath(event.params.name);
+        const { path } = event.params;
         set(event.params.values, path, event.params.value);
         if (event.params.nextMeta !== false) {
           set(meta, path, event.params.nextMeta);
