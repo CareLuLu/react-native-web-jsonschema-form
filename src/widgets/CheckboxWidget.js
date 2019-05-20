@@ -54,6 +54,10 @@ const CheckboxWidget = withHandlers({
   gridItemLength,
   adjustTitle,
   style,
+  styleChecked,
+  styleUnchecked,
+  styleCheckedText,
+  styleUncheckedText,
   Wrapper,
 }) => {
   const focused = focus === name || (focus === null && uiSchema['ui:autofocus']);
@@ -87,6 +91,10 @@ const CheckboxWidget = withHandlers({
         onFocus={onWrappedFocus}
         autoFocus={focused}
         style={css}
+        styleChecked={styleChecked}
+        styleUnchecked={styleUnchecked}
+        styleCheckedText={styleCheckedText}
+        styleUncheckedText={styleUncheckedText}
       />
     </React.Fragment>
   );
@@ -106,6 +114,10 @@ CheckboxWidget.propTypes = {
   hasError: PropTypes.bool,
   auto: PropTypes.bool,
   style: StylePropType,
+  styleChecked: StylePropType,
+  styleUnchecked: StylePropType,
+  styleCheckedText: StylePropType,
+  styleUncheckedText: StylePropType,
   text: PropTypes.string,
   checked: PropTypes.bool,
   adjustTitle: PropTypes.bool,
@@ -120,6 +132,10 @@ CheckboxWidget.defaultProps = {
   hasError: false,
   auto: false,
   style: null,
+  styleChecked: null,
+  styleUnchecked: null,
+  styleCheckedText: null,
+  styleUncheckedText: null,
   text: undefined,
   checked: false,
   adjustTitle: true,
