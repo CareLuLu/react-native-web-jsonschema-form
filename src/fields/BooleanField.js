@@ -18,34 +18,40 @@ class BooleanField extends AbstractField {
   getWidget() {
     const { widgets, uiSchema } = this.props;
     const widgetName = uiSchema['ui:widget'];
+    const trueText = get(uiSchema, ['ui:options', 'trueText'], 'Yes');
+    const trueValue = get(uiSchema, ['ui:options', 'trueValue'], true);
+    const falseText = get(uiSchema, ['ui:options', 'falseText'], 'No');
+    const falseValue = get(uiSchema, ['ui:options', 'falseValue'], false);
 
     let Widget;
     if (!widgetName || widgetName === 'checkbox') {
       const { CheckboxWidget } = widgets;
-      Widget = ({ value, ...props }) => <CheckboxWidget {...props} value checked={!!value} />;
+      Widget = ({ value, ...props }) => (
+        <CheckboxWidget {...props} value={trueValue} checked={value === trueValue} />
+      );
     } else if (widgetName === 'radio') {
       const { RadioWidget } = widgets;
       Widget = ({ value, style, ...props }) => (
         <React.Fragment>
           <RadioWidget
             {...props}
-            text={get(uiSchema, ['ui:options', 'trueText'], 'Yes')}
-            checked={value === true}
+            text={trueText}
+            checked={value === trueValue}
             style={[
               !uiSchema['ui:inline'] || uiSchema['ui:title'] !== false ? styles.padding : null,
               style,
             ]}
-            value
+            value={trueValue}
           />
           <RadioWidget
             {...props}
-            text={get(uiSchema, ['ui:options', 'falseText'], 'No')}
-            checked={value === false}
+            text={falseText}
+            checked={value === falseValue}
             style={[
               styles.padding,
               style,
             ]}
-            value={false}
+            value={falseValue}
           />
         </React.Fragment>
       );
