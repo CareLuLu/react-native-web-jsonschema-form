@@ -3,6 +3,7 @@ import {
   get,
   each,
   uniq,
+  first,
   indexOf,
   flatten,
   isArray,
@@ -87,15 +88,23 @@ const getUiSchemaPick = (schema, uiSchema) => {
 };
 
 export const getStructure = (
-  schema,
+  possibleSchema,
   uiSchema,
   key,
   compiledSchema = {},
   compiledUiSchema = {},
 ) => {
-  if (!schema) {
-    // throw new Error(`"${key}" is not included in the schema definition.`);
-  } else if (schema.type === 'object') {
+  if (!possibleSchema) {
+    return {
+      schema: compiledSchema,
+      uiSchema: compiledUiSchema,
+    };
+  }
+  let schema = possibleSchema;
+  if (schema.anyOf) {
+    schema = first(schema.anyOf);
+  }
+  if (schema.type === 'object') {
     const schemaNode = {
       ...schema,
       properties: {},
