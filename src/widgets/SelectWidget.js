@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { isArray, without } from 'lodash';
 import { withHandlers } from 'recompact';
 import Select from 'react-native-web-ui-components/Select';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
@@ -30,8 +31,11 @@ const SelectWidget = withHandlers({
   auto,
   style,
 }) => {
-  const values = schema.enum || uiSchema['ui:enum'] || [];
-  const labels = schema.enumNames || uiSchema['ui:enumNames'] || values;
+  let values = uiSchema['ui:enum'] || schema.enum || [];
+  if (isArray(uiSchema['ui:enumExcludes'])) {
+    values = without(values, uiSchema['ui:enumExcludes']);
+  }
+  const labels = uiSchema['ui:enumNames'] || schema.enumNames || values;
   const autoFocus = focus === name || (focus === null && uiSchema['ui:autofocus']);
   return (
     <Select
