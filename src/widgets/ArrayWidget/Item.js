@@ -2,13 +2,16 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Platform, View as RNView } from 'react-native';
 import { noop } from 'lodash';
-import Row from 'react-native-web-ui-components/Row';
+import View from 'react-native-web-ui-components/View';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
 import RemoveHandle from './RemoveHandle';
 
 const styles = StyleSheet.create({
   main: {
     flex: 1,
+  },
+  row: {
+    flexDirection: 'row',
   },
 });
 
@@ -23,7 +26,7 @@ const Wrapper = ({
     const css = {
       display: 'flex',
       alignItems: 'flex-start',
-      width: '100%',
+      width: 'max-content',
       flexDirection: 'row',
       zIndex,
       ...StyleSheet.flatten(itemStyle),
@@ -32,9 +35,9 @@ const Wrapper = ({
     return React.createElement('div', { ...props, style: css }, children);
   }
   return (
-    <Row style={[styles.container, itemStyle, zIndex]}>
+    <View style={[styles.row, itemStyle, zIndex]}>
       {children}
-    </Row>
+    </View>
   );
 };
 

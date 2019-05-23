@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
+import { get } from 'lodash';
 import { withProps, withHandlers, compose } from 'recompact';
 import RNDraggable from 'react-native-web-ui-components/Draggable';
 import Item from './Item';
@@ -123,11 +124,12 @@ const DraggableItem = compose(
   onDragEnd,
   ItemComponent,
   titleOnly,
+  uiSchema,
 }) => (
   <RNDraggable
     handle={handle}
     scroller={scroller}
-    style={styles.container}
+    style={[styles.container, get(uiSchema, ['ui:widgetProps', 'style'], null)]}
     disabled={!orderable || titleOnly}
     onDragStart={onDragStart}
     onDragEnd={onDragEnd}
