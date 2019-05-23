@@ -270,6 +270,7 @@ class Form extends React.Component {
       const { onFocus, scroller } = this.props;
       const event = new FormEvent('focus', {
         name,
+        blur: focus,
         update: update || [focus, name],
       });
       this.run(onFocus(event), () => {

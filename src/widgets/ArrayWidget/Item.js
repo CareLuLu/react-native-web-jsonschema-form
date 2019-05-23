@@ -51,11 +51,11 @@ const Wrapper = ({
 };
 
 Wrapper.propTypes = {
-  uiSchema: PropTypes.shape().isRequired,
   zIndex: PropTypes.number.isRequired,
   value: PropTypes.arrayOf(PropTypes.any).isRequired,
   index: PropTypes.number.isRequired,
   children: PropTypes.node.isRequired,
+  uiSchema: PropTypes.shape(),
   style: StylePropType,
   itemStyle: StylePropType,
 };
@@ -63,6 +63,7 @@ Wrapper.propTypes = {
 Wrapper.defaultProps = {
   style: {},
   itemStyle: {},
+  uiSchema: {},
 };
 
 const Item = ({
