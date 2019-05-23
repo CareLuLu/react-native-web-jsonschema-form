@@ -5,6 +5,7 @@ import {
   last,
   times,
   isArray,
+  isFunction,
 } from 'lodash';
 import {
   withProps,
@@ -60,7 +61,11 @@ const iterateUiSchema = (uiSchema, i) => {
   };
 };
 
-const adjustUiSchema = (uiSchema, i) => {
+const adjustUiSchema = (possibleUiSchema, i) => {
+  let uiSchema = possibleUiSchema;
+  if (isFunction(possibleUiSchema['ui:iterate'])) {
+    uiSchema = possibleUiSchema['ui:iterate'](i);
+  }
   const adjustedUiSchema = iterateUiSchema(uiSchema, i);
   each(uiSchema, (uis, key) => {
     if (!/^ui:/.test(key)) {
