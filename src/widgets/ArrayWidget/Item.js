@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Platform, View as RNView } from 'react-native';
-import { noop } from 'lodash';
+import { noop, get } from 'lodash';
 import View from 'react-native-web-ui-components/View';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
 import RemoveHandle from './RemoveHandle';
@@ -13,6 +13,10 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
   },
+  container: {
+    width: '100%',
+    alignItems: 'flex-start',
+  },
 });
 
 const Wrapper = ({
@@ -20,13 +24,18 @@ const Wrapper = ({
   style,
   itemStyle,
   zIndex,
+  uiSchema,
   ...props
 }) => {
   if (Platform.OS === 'web') {
+    const topStyle = StyleSheet.flatten([
+      styles.container,
+      get(uiSchema, ['ui:widgetProps', 'style'], null),
+    ]);
     const css = {
       display: 'flex',
       alignItems: 'flex-start',
-      width: 'max-content',
+      width: topStyle.width === undefined ? 'max-content' : '100%',
       flexDirection: 'row',
       zIndex,
       ...StyleSheet.flatten(itemStyle),
@@ -42,6 +51,7 @@ const Wrapper = ({
 };
 
 Wrapper.propTypes = {
+  uiSchema: PropTypes.shape().isRequired,
   zIndex: PropTypes.number.isRequired,
   value: PropTypes.arrayOf(PropTypes.any).isRequired,
   index: PropTypes.number.isRequired,
