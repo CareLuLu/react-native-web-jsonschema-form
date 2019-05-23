@@ -44,4 +44,7 @@ export default {
   TextWidget,
   TimeRangeWidget,
   ZipWidget,
+
+  // Alias
+  RadioboxWidget: RadioWidget,
 };

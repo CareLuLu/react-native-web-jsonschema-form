@@ -131,7 +131,6 @@ Item.propTypes = {
   focus: PropTypes.string.isRequired,
   screenType: PropTypes.string.isRequired,
   propertyName: PropTypes.string.isRequired,
-  propertyValue: PropTypes.any.isRequired, // eslint-disable-line
   propertySchema: PropTypes.shape().isRequired,
   propertyUiSchema: PropTypes.shape().isRequired,
   propertyMeta: PropTypes.any.isRequired, // eslint-disable-line
@@ -150,6 +149,7 @@ Item.propTypes = {
   onTouchStart: PropTypes.func,
   onTouchEnd: PropTypes.func,
   onClick: PropTypes.func,
+  propertyValue: PropTypes.any, // eslint-disable-line
   propertyErrors: PropTypes.any, // eslint-disable-line
 };
 

@@ -108,7 +108,7 @@ CheckboxWidget.propTypes = {
   gridItemType: PropTypes.string.isRequired,
   gridItemLength: PropTypes.number.isRequired,
   focus: PropTypes.string,
-  value: PropTypes.bool,
+  value: PropTypes.any, // eslint-disable-line
   readonly: PropTypes.bool,
   disabled: PropTypes.bool,
   hasError: PropTypes.bool,

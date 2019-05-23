@@ -61,10 +61,10 @@ const iterateUiSchema = (uiSchema, i) => {
   };
 };
 
-const adjustUiSchema = (possibleUiSchema, i) => {
+const adjustUiSchema = (possibleUiSchema, i, props) => {
   let uiSchema = possibleUiSchema;
   if (isFunction(possibleUiSchema['ui:iterate'])) {
-    uiSchema = possibleUiSchema['ui:iterate'](i);
+    uiSchema = possibleUiSchema['ui:iterate'](i, props);
   }
   const adjustedUiSchema = iterateUiSchema(uiSchema, i);
   each(uiSchema, (uis, key) => {
@@ -256,7 +256,7 @@ const ArrayWidget = compose(
           propertyValue={getItem(schema)}
           propertyErrors={{}}
           propertyMeta={getItem(schema) || {}}
-          propertyUiSchema={adjustUiSchema(propertyUiSchema, -1)}
+          propertyUiSchema={adjustUiSchema(propertyUiSchema, -1, props)}
           index={-1}
           zIndex={1}
           titleOnly
@@ -270,7 +270,7 @@ const ArrayWidget = compose(
           propertyValue={value[index]}
           propertyMeta={(meta && meta[index]) || getItem(schema) || {}}
           propertyErrors={errors && errors[index]}
-          propertyUiSchema={adjustUiSchema(propertyUiSchema, index)}
+          propertyUiSchema={adjustUiSchema(propertyUiSchema, index, props)}
           index={index}
           zIndex={(dragging === index ? value.length : (value.length - index)) + 1}
           noTitle={screenType !== 'xs'}
@@ -279,12 +279,12 @@ const ArrayWidget = compose(
       {times(missingItems, index => (
         <PropertyComponent
           {...props}
-          key={`${review}.${name}.${index}`}
-          propertyName={`${name}.${index}`}
+          key={`${review}.${name}.${value.length + index}`}
+          propertyName={`${name}.${value.length + index}`}
           propertyValue={getItem(schema)}
           propertyMeta={getItem(schema) || {}}
           propertyErrors={errors && errors[index]}
-          propertyUiSchema={adjustUiSchema(propertyUiSchema, index)}
+          propertyUiSchema={adjustUiSchema(propertyUiSchema, value.length + index, props)}
           index={index}
           zIndex={(dragging === index ? missingItems : (missingItems - index)) + 1}
           noTitle={screenType !== 'xs'}

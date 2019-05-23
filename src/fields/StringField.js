@@ -41,8 +41,8 @@ class StringField extends AbstractField {
     const { schema, widgets, uiSchema } = this.props;
     let Widget;
     const widgetName = uiSchema['ui:widget'];
-    let values = uiSchema['ui:enum'] || schema.enum || [];
-    if (values.length && (widgetName === 'radio' || widgetName === 'checkbox')) {
+    if (widgetName === 'radioboxes' || widgetName === 'checkboxes') {
+      let values = uiSchema['ui:enum'] || schema.enum || [];
       if (isArray(uiSchema['ui:enumExcludes'])) {
         values = without(values, uiSchema['ui:enumExcludes']);
       }
