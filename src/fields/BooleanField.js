@@ -38,7 +38,7 @@ class BooleanField extends AbstractField {
             text={trueText}
             checked={value === trueValue}
             style={[
-              !uiSchema['ui:inline'] || uiSchema['ui:title'] !== false ? styles.padding : null,
+              uiSchema['ui:inline'] && uiSchema['ui:title'] !== false ? styles.padding : null,
               style,
             ]}
             value={trueValue}
@@ -48,7 +48,7 @@ class BooleanField extends AbstractField {
             text={falseText}
             checked={value === falseValue}
             style={[
-              styles.padding,
+              uiSchema['ui:inline'] ? styles.padding : null,
               style,
             ]}
             value={falseValue}

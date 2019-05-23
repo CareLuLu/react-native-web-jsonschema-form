@@ -39,35 +39,33 @@ class StringField extends AbstractField {
 
   getWidget() {
     const { schema, widgets, uiSchema } = this.props;
-    const widgetName = uiSchema['ui:widget'];
     let Widget;
-    if (schema.enum) {
-      let values = uiSchema['ui:enum'] || schema.enum || [];
+    const widgetName = uiSchema['ui:widget'];
+    let values = uiSchema['ui:enum'] || schema.enum || [];
+    if (values.length && (widgetName === 'radio' || widgetName === 'checkbox')) {
       if (isArray(uiSchema['ui:enumExcludes'])) {
         values = without(values, uiSchema['ui:enumExcludes']);
       }
       const labels = uiSchema['ui:enumNames'] || schema.enumNames || values;
-      if (widgetName === 'radio' || widgetName === 'checkbox') {
-        const { RadioWidget, CheckboxWidget } = widgets;
-        const BaseWidget = widgetName === 'radio' ? RadioWidget : CheckboxWidget;
-        Widget = ({ value, style, ...props }) => (
-          <React.Fragment>
-            {values.map((trueValue, i) => (
-              <BaseWidget
-                {...props}
-                key={trueValue}
-                text={labels[i]}
-                checked={value === trueValue}
-                style={[
-                  !uiSchema['ui:inline'] || uiSchema['ui:title'] !== false ? styles.padding : null,
-                  style,
-                ]}
-                value={trueValue}
-              />
-            ))}
-          </React.Fragment>
-        );
-      }
+      const { RadioWidget, CheckboxWidget } = widgets;
+      const BaseWidget = widgetName === 'radio' ? RadioWidget : CheckboxWidget;
+      Widget = ({ value, style, ...props }) => (
+        <React.Fragment>
+          {values.map((trueValue, i) => (
+            <BaseWidget
+              {...props}
+              key={trueValue}
+              text={labels[i]}
+              checked={value === trueValue}
+              style={[
+                uiSchema['ui:inline'] && (i > 0 || uiSchema['ui:title'] !== false) ? styles.padding : null,
+                style,
+              ]}
+              value={trueValue}
+            />
+          ))}
+        </React.Fragment>
+      );
     }
     return Widget;
   }

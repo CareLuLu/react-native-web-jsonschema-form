@@ -130,7 +130,8 @@ class AbstractField extends React.Component {
     let Widget;
     if (this.getWidget) {
       Widget = this.getWidget(this.props);
-    } else {
+    }
+    if (!Widget) {
       Widget = getComponent(uiSchema['ui:widget'], 'Widget', widgets);
     }
     if (!Widget) {
