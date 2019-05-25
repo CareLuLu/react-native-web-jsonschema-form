@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { repeat, isNumber } from 'lodash';
+import { repeat, isNaN } from 'lodash';
 import { withHandlers, compose } from 'recompact';
 import TextInputWidget from './TextInputWidget';
 
@@ -140,7 +140,7 @@ const textParserHandler = ({ currency, thousands, decimal }) => (value) => {
       return value;
     }
     const result = parseFloat(value);
-    return isNumber(result) ? result : null;
+    return isNaN(result) ? result : null;
   }
   const thousandsRegex = new RegExp(`\\${thousands}`, 'g');
   const decimalRegex = new RegExp(`\\${decimal}`);
