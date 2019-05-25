@@ -1,5 +1,4 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import {
   each,
   last,
@@ -26,16 +25,6 @@ import RemoveHandle from './RemoveHandle';
 import DraggableItem from './DraggableItem';
 
 /* eslint react/no-array-index-key: 0 */
-
-const styles = StyleSheet.create({
-  label: {
-    fontWeight: 'bold',
-    paddingTop: 10,
-  },
-  labelXs: {
-    paddingBottom: 5,
-  },
-});
 
 const getItem = (schema) => {
   let newItem = '';
@@ -93,15 +82,6 @@ const getProps = ({
   const PropertyField = getComponent(propertySchema.type, 'Field', fields);
   const options = uiSchema['ui:options'] || {};
 
-  let adjustedUiSchema = uiSchema;
-  const titleProps = uiSchema['ui:titleProps'] || {};
-  titleProps.style = [
-    styles.label,
-    screenType === 'xs' ? styles.labelXs : null,
-    titleProps.style || null,
-  ];
-  adjustedUiSchema = { ...uiSchema, 'ui:titleProps': titleProps };
-
   const extraProps = {
     title,
     screenType,
@@ -112,7 +92,6 @@ const getProps = ({
       options.minimumNumberOfItems === undefined
       || options.minimumNumberOfItems === null
     ) ? 1 : options.minimumNumberOfItems,
-    uiSchema: adjustedUiSchema,
     addLabel: options.addLabel || `Add ${formatTitle(title)}`,
     addable: options.addable !== false,
     removable: options.removable !== false,
@@ -244,7 +223,7 @@ const ArrayWidget = compose(
           hasTitle={hasTitle}
           hasError={hasError}
           auto={uiSchema['ui:inline']}
-          {...uiSchema['ui:titleProps']}
+          {...(uiSchema['ui:titleProps'] || {})}
         >
           {title}
         </LabelWidget>
