@@ -48,7 +48,7 @@ class StringField extends AbstractField {
       }
       const labels = uiSchema['ui:enumNames'] || schema.enumNames || values;
       const { RadioWidget, CheckboxWidget } = widgets;
-      const BaseWidget = widgetName === 'radio' ? RadioWidget : CheckboxWidget;
+      const BaseWidget = widgetName === 'radioboxes' ? RadioWidget : CheckboxWidget;
       Widget = ({ value, style, ...props }) => (
         <React.Fragment>
           {values.map((trueValue, i) => (
