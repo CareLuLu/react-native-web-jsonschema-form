@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { repeat } from 'lodash';
+import { repeat, isNumber } from 'lodash';
 import { withHandlers, compose } from 'recompact';
 import TextInputWidget from './TextInputWidget';
 
@@ -113,7 +113,10 @@ function maskValue(text, settings) {
   return maskValueStandard(value, settings);
 }
 
-const maskHandler = settings => (value, direction) => {
+const maskHandler = ({ currency, ...settings }) => (value, direction) => {
+  if (!currency) {
+    return value;
+  }
   let textValue = value;
   if (direction === 'in') {
     const { decimal, precision } = settings;
@@ -131,22 +134,41 @@ const maskHandler = settings => (value, direction) => {
   return maskValue(textValue, settings);
 };
 
-const textParserHandler = ({ thousands, decimal }) => (value) => {
+const textParserHandler = ({ currency, thousands, decimal }) => (value) => {
+  if (!currency) {
+    if (value[value.length - 1] === decimal && value.split(decimal).length === 1) {
+      return value;
+    }
+    const result = parseFloat(value);
+    return isNumber(result) ? result : null;
+  }
   const thousandsRegex = new RegExp(`\\${thousands}`, 'g');
   const decimalRegex = new RegExp(`\\${decimal}`);
   return parseFloat(value.replace(thousandsRegex, '').replace(decimalRegex, '.')) || null;
+};
+
+const onChangeHandler = ({ currency, onChange }) => (value, ...args) => {
+  // We ignore the onChange event if not in currency mode and
+  // the value is not null or number. This allows the user
+  // to input "2." not triggering onChange and then "2.5"
+  // triggering the change.
+  if (currency || value === null || isNumber(value)) {
+    onChange(value, ...args);
+  }
 };
 
 const NumberWidget = compose(
   withHandlers({
     mask: maskHandler,
     textParser: textParserHandler,
+    onChange: onChangeHandler,
   }),
 )(props => (
   <TextInputWidget {...props} keyboardType="number-pad" />
 ));
 
 NumberWidget.propTypes = {
+  currency: PropTypes.bool,
   prefix: PropTypes.string,
   suffix: PropTypes.string,
   affixesStay: PropTypes.bool,
@@ -159,6 +181,7 @@ NumberWidget.propTypes = {
 };
 
 NumberWidget.defaultProps = {
+  currency: false,
   prefix: '',
   suffix: '',
   affixesStay: true,
