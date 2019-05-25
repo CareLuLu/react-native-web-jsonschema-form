@@ -136,7 +136,7 @@ const maskHandler = ({ currency, ...settings }) => (value, direction) => {
 
 const textParserHandler = ({ currency, thousands, decimal }) => (value) => {
   if (!currency) {
-    if (value[value.length - 1] === decimal && value.split(decimal).length === 1) {
+    if (value[value.length - 1] === decimal && value.split(decimal).length === 2) {
       return value;
     }
     const result = parseFloat(value);
