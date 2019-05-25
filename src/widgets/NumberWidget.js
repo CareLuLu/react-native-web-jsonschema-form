@@ -147,21 +147,10 @@ const textParserHandler = ({ currency, thousands, decimal }) => (value) => {
   return parseFloat(value.replace(thousandsRegex, '').replace(decimalRegex, '.')) || null;
 };
 
-const onChangeHandler = ({ currency, onChange }) => (value, ...args) => {
-  // We ignore the onChange event if not in currency mode and
-  // the value is not null or number. This allows the user
-  // to input "2." not triggering onChange and then "2.5"
-  // triggering the change.
-  if (currency || value === null || isNumber(value)) {
-    onChange(value, ...args);
-  }
-};
-
 const NumberWidget = compose(
   withHandlers({
     mask: maskHandler,
     textParser: textParserHandler,
-    onChange: onChangeHandler,
   }),
 )(props => (
   <TextInputWidget {...props} keyboardType="number-pad" />
