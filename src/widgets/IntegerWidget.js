@@ -4,7 +4,7 @@ import TextInputWidget from './TextInputWidget';
 
 const textParser = (value) => {
   const result = parseInt(value, 10);
-  return isNaN(result) ? result : null;
+  return !isNaN(result) ? result : null;
 };
 
 const IntegerWidget = props => (

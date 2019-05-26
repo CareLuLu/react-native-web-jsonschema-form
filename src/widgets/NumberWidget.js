@@ -140,7 +140,7 @@ const textParserHandler = ({ currency, thousands, decimal }) => (value) => {
       return value;
     }
     const result = parseFloat(value);
-    return isNaN(result) ? result : null;
+    return !isNaN(result) ? result : null;
   }
   const thousandsRegex = new RegExp(`\\${thousands}`, 'g');
   const decimalRegex = new RegExp(`\\${decimal}`);
