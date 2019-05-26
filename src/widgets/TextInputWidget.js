@@ -5,7 +5,7 @@ import { noop, isString, isFunction } from 'lodash';
 import { withHandlers } from 'recompact';
 import TextInput from 'react-native-web-ui-components/TextInput';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
-import { formatMask } from '../utils';
+import { formatMask, isEmpty } from '../utils';
 
 const styles = StyleSheet.create({
   defaults: {
@@ -96,7 +96,7 @@ const TextInputWidget = withHandlers({
       multiline={multiline}
       numberOfLines={numberOfLines}
       keyboardType={Platform.OS !== 'web' ? keyboardType : undefined}
-      value={textValue || uiSchema['ui:emptyValue'] || ''}
+      value={isEmpty(textValue) ? (uiSchema['ui:emptyValue'] || '') : textValue}
       placeholder={placeholder}
       secureTextEntry={secureTextEntry}
     />

@@ -6,6 +6,7 @@ import {
   first,
   indexOf,
   flatten,
+  isNaN,
   isArray,
   isString,
   isPlainObject,
@@ -240,10 +241,13 @@ export const getValues = (data, schema, key, casting = true, uiSchema = false) =
       switch (schema.type) {
         case 'string': value = `${value}`; break;
         case 'number':
-        case 'float': value = parseFloat(value) || null; break;
+        case 'float': value = parseFloat(value); break;
         case 'integer':
-        case 'date': value = parseInt(value, 10) || null; break;
+        case 'date': value = parseInt(value, 10); break;
         default: break;
+      }
+      if (isNaN(value)) {
+        value = null;
       }
     }
   } else if (uiSchema) {
@@ -377,6 +381,8 @@ export const normalized = (value) => {
   }
   return value;
 };
+
+export const isEmpty = value => (value === '' || value === null || value === undefined);
 
 export const viewStyleKeys = [
   'animationDelay',
