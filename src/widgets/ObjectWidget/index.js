@@ -28,7 +28,8 @@ class ObjectWidget extends React.Component {
       }];
       this.cache = createGrid(grid, this.props);
     }
-    return this.cache(this.props);
+    const Grid = this.cache;
+    return <Grid {...this.props} />;
   }
 }
 

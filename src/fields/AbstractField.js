@@ -9,6 +9,7 @@ import {
   FIELD_TITLE,
   toPath,
 } from '../utils';
+import ArrayWidget from '../widgets/ArrayWidget';
 
 const styles = StyleSheet.create({
   field: {},
@@ -90,7 +91,7 @@ class AbstractField extends React.Component {
       noTitle
       || uiSchema['ui:title'] === false
       || schema.type === 'object'
-      || schema.type === 'array'
+      || this.cache === ArrayWidget
     );
     if (!uiSchema['ui:toggleable'] && !hasTitle) {
       return null;
@@ -126,17 +127,24 @@ class AbstractField extends React.Component {
       value,
       titleOnly,
       zIndex,
+      clearCache,
     } = this.props;
-    let Widget;
-    if (this.getWidget) {
-      Widget = this.getWidget(this.props);
+
+    if (clearCache) {
+      this.cache = null;
     }
-    if (!Widget) {
-      Widget = getComponent(uiSchema['ui:widget'], 'Widget', widgets);
+    if (!this.cache) {
+      if (this.getWidget) {
+        this.cache = this.getWidget(this.props);
+      }
+      if (!this.cache) {
+        this.cache = getComponent(uiSchema['ui:widget'], 'Widget', widgets);
+      }
+      if (!this.cache) {
+        this.cache = this.getDefaultWidget(this.props);
+      }
     }
-    if (!Widget) {
-      Widget = this.getDefaultWidget(this.props);
-    }
+    const Widget = this.cache;
     const hasError = (
       schema.type !== 'object'
       && schema.type !== 'array'
@@ -170,7 +178,7 @@ class AbstractField extends React.Component {
       value,
     };
     const placeholder = getTitle(uiSchema['ui:placeholder'] || '', params);
-    const fieldClassName = schema.type !== 'object' && schema.type !== 'array' ? `${id}-field` : '';
+    const fieldClassName = schema.type !== 'object' && Widget !== ArrayWidget ? `${id}-field` : '';
     return (
       <Row
         xs={12}

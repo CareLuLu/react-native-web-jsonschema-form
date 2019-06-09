@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { withProps, withHandlers, compose } from 'recompact';
 import View from 'react-native-web-ui-components/View';
+import TouchableOpacity from 'react-native-web-ui-components/TouchableOpacity';
 import Rating from 'react-native-web-ui-components/Rating';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
 import createDomStyle from 'react-native-web-ui-components/createDomStyle';
@@ -43,7 +44,7 @@ const RatingWidget = compose(
       onTouchableMounted: ({ id }) => (ref) => {
         state.touchable = ref;
         if (Platform.OS === 'web') {
-          state.pageX = () => document.getElementsByClassName(id)[0].getBoundingClientRect().left;
+          state.pageX = () => document.querySelector(`[data-class~="${id}"]`).getBoundingClientRect().left;
         } else {
           setTimeout(() => {
             if (state.touchable && state.touchable.measure) {
@@ -118,23 +119,23 @@ const RatingWidget = compose(
       <Helmet>
         <style>
           {`
-            .${id}:hover {
+            [data-class~="${id}"]:hover {
               cursor: pointer;
             }
-            .${id}:hover .Rating__group {
+            [data-class~="${id}"]:hover [data-class~="Rating__group"] {
               ${fullCss}
             }
-            .${id}:hover .Rating {
+            [data-class~="${id}"]:hover [data-class~="Rating"] {
               color: inherit;
             }
-            .${id} .Rating__group:hover,
-            .${id} .Rating__group:hover ~ .Rating__group {
+            [data-class~="${id}"] [data-class~="Rating__group"]:hover,
+            [data-class~="${id}"] [data-class~="Rating__group"]:hover ~ [data-class~="Rating__group"] {
               ${emptyCss}
             }
-            .${id} .Rating:hover {
+            [data-class~="${id}"] [data-class~="Rating"]:hover {
               ${fullCss}
             }
-            ${Array(10).fill(0).map((v, i) => `.${id} .Rating__${(2 * i) + 1}:hover + .Rating__${2 * i}`).join(',')} {
+            ${Array(10).fill(0).map((v, i) => `[data-class~="${id}"] [data-class~="Rating__${(2 * i) + 1}"]:hover + [data-class~="Rating__${2 * i}"]`).join(',')} {
               ${fullCss}
             }
           `}

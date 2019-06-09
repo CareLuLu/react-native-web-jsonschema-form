@@ -1,4 +1,5 @@
 import ArrayWidget from './ArrayWidget';
+import AutocompleteWidget from './AutocompleteWidget';
 import CheckboxWidget from './CheckboxWidget';
 import DateWidget from './DateWidget';
 import EmailWidget from './EmailWidget';
@@ -15,6 +16,7 @@ import RadioWidget from './RadioWidget';
 import RatingWidget from './RatingWidget';
 import ScheduleWidget from './ScheduleWidget';
 import SelectWidget from './SelectWidget';
+import TagInputWidget from './TagInputWidget';
 import TextareaWidget from './TextareaWidget';
 import TextInputWidget from './TextInputWidget';
 import TextWidget from './TextWidget';
@@ -23,6 +25,7 @@ import ZipWidget from './ZipWidget';
 
 export default {
   ArrayWidget,
+  AutocompleteWidget,
   CheckboxWidget,
   DateWidget,
   EmailWidget,
@@ -39,6 +42,7 @@ export default {
   RatingWidget,
   ScheduleWidget,
   SelectWidget,
+  TagInputWidget,
   TextareaWidget,
   TextInputWidget,
   TextWidget,

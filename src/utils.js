@@ -169,7 +169,7 @@ export const getStructure = (
 
 export const isField = (element, classNameRegex) => {
   for (let node = element; node && node !== document; node = node.parentNode) {
-    if (classNameRegex.test(node.className || '')) {
+    if (classNameRegex.test(node.getAttribute('data-class') || '')) {
       return true;
     }
   }

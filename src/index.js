@@ -101,6 +101,7 @@ class Form extends React.Component {
     scroller: PropTypes.shape(),
     widgets: PropTypes.arrayOf(PropTypes.elementType),
     filterEmptyValues: PropTypes.bool,
+    ignoreFormDataUpdates: PropTypes.bool, // eslint-disable-line
   };
 
   static defaultProps = {
@@ -129,6 +130,7 @@ class Form extends React.Component {
     scroller: null,
     widgets: [],
     filterEmptyValues: false,
+    ignoreFormDataUpdates: false,
   };
 
   static getDerivedStateFromProps(nextProps, prevState) {
@@ -169,7 +171,7 @@ class Form extends React.Component {
 
       // If the relevant attributes of formData changes, we recalculate values.
       const nextFormDataProp = getValues(nextProps.formData, schema);
-      if (!isEqual(formDataProp, nextFormDataProp)) {
+      if (!nextProps.ignoreFormDataUpdates && !isEqual(formDataProp, nextFormDataProp)) {
         state = {
           clearCache: true,
           event: 'rebuild:form-data',

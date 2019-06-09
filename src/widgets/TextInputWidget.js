@@ -55,7 +55,9 @@ const TextInputWidget = withHandlers({
   onWrappedChange,
   onWrappedFocus,
   textParser,
-  ...props
+  Input,
+  inputProps,
+  style,
 }) => {
   let textValue = '';
   if (value !== null && value !== undefined) {
@@ -78,16 +80,16 @@ const TextInputWidget = withHandlers({
   const currentStyle = [
     styles.defaults,
     auto ? styles.auto : styles.fullWidth,
-    props.style, // eslint-disable-line
+    style,
   ];
   const focused = focus === name || (focus === null && uiSchema['ui:autofocus']);
   return (
-    <TextInput
+    <Input
       hasError={hasError}
       disabled={disabled}
       readonly={readonly}
       autoCapitalize="none"
-      className="text-widget"
+      className="TextInput__widget"
       style={currentStyle}
       onFocus={onWrappedFocus}
       onSubmitEditing={multiline ? noop : onSubmit}
@@ -99,6 +101,7 @@ const TextInputWidget = withHandlers({
       value={isEmpty(textValue) ? (uiSchema['ui:emptyValue'] || '') : textValue}
       placeholder={placeholder}
       secureTextEntry={secureTextEntry}
+      {...inputProps}
     />
   );
 });
@@ -123,6 +126,8 @@ TextInputWidget.propTypes = {
   numberOfLines: PropTypes.number,
   auto: PropTypes.bool,
   textParser: PropTypes.func,
+  Input: PropTypes.elementType,
+  inputProps: PropTypes.shape(),
 };
 
 TextInputWidget.defaultProps = {
@@ -142,6 +147,8 @@ TextInputWidget.defaultProps = {
   numberOfLines: 1,
   auto: false,
   textParser: value => value,
+  Input: TextInput,
+  inputProps: {},
 };
 
 export default TextInputWidget;

@@ -70,6 +70,7 @@ const createProperty = (property, gridItem, index, params) => {
       style: [
         Screen.getType() !== 'xs' ? styles.item : null,
         { zIndex: gridItem.children.length - index },
+        column.style || null,
       ],
       ...column,
     };
@@ -173,7 +174,7 @@ const createGrid = (grid, params) => {
           <Helmet>
             <style>
               {`
-                .FormGridItem__grid {
+                [data-class~="FormGridItem__grid"] {
                   width: calc(100% + 10px);
                 }
               `}

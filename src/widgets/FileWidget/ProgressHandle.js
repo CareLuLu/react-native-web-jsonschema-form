@@ -34,7 +34,7 @@ const ProgressHandle = ({ meta, theme }) => (
     <Helmet>
       <style>
         {`
-          .FileWidget__progress {
+          [data-class~="FileWidget__progress"] {
             transition: width 0.5s;
           }
         `}
