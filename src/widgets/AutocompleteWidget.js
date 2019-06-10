@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withHandlers } from 'recompact';
-import { pick } from 'lodash';
+import { pick, isFunction } from 'lodash';
 import Autocomplete from 'react-native-web-ui-components/Autocomplete';
 import TextInputWidget from './TextInputWidget';
 
@@ -16,7 +16,12 @@ const allowedAttributes = [
 ];
 
 const AutocompleteWidget = withHandlers({
-  onSelect: ({ onChange, name }) => value => onChange(value, name),
+  onSelect: ({ onChange, onSelect, name }) => (value) => {
+    if (isFunction(onSelect)) {
+      return onSelect(value);
+    }
+    return onChange(value, name);
+  },
 })(props => (
   <TextInputWidget
     {...props}
