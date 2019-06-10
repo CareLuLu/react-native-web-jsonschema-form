@@ -490,6 +490,29 @@ class Form extends React.Component {
     return filteredValues;
   }
 
+  reRender() {
+    const nextProps = this.props;
+    const prevState = this.state;
+    const { schema, uiSchema } = getStructure(nextProps.schema, nextProps.uiSchema);
+    const formDataProp = getValues(nextProps.formData, schema);
+    const values = merge(prevState.values, formDataProp);
+    this.onMount(() => this.setState({
+      schema,
+      uiSchema,
+      formDataProp,
+      clearCache: true,
+      event: 'rebuild:rerender',
+      required: getRequired(schema),
+      schemaProp: nextProps.schema,
+      uiSchemaProp: nextProps.uiSchema,
+      errorSchemaProp: nextProps.errorSchema,
+      metaSchemaProp: nextProps.metaSchema,
+      values: cloneDeep(values),
+      errors: cloneDeep(getErrors(nextProps.errorSchema, schema)),
+      meta: cloneDeep(getMeta(nextProps.metaSchema || values, schema, uiSchema)),
+    }));
+  }
+
   render() {
     const {
       event,
