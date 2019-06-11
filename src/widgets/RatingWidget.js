@@ -106,7 +106,7 @@ const RatingWidget = compose(
   const emptyCss = createDomStyle([styles.empty, emptyStyle]);
   return (
     <TouchableOpacity
-      ref={onTouchableMounted}
+      onRef={onTouchableMounted}
       className={id}
       style={[
         styles.defaults,
