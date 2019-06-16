@@ -270,17 +270,17 @@ const getProps = ({
           disabled: checkbox && !adjustedValue[i][dateAttribute],
           filterTime: time => filterTime(time, get(value, i, {})),
         })),
-        'ui:container': {
+        'ui:containerProps': {
           style: styles.timesContainer,
         },
       },
     },
   };
-  const container = get(uiSchema, ['items', dateAttribute, 'ui:container'], {});
-  propertyUiSchema.items[dateAttribute]['ui:container'] = {
+  const container = get(uiSchema, ['items', dateAttribute, 'ui:containerProps'], {});
+  propertyUiSchema.items[dateAttribute]['ui:containerProps'] = {
     ...container,
   };
-  propertyUiSchema.items[dateAttribute]['ui:container'].style = [
+  propertyUiSchema.items[dateAttribute]['ui:containerProps'].style = [
     styles.dateContainer,
     container.style || null,
   ];

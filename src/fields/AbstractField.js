@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { last, isArray } from 'lodash';
 import Row from 'react-native-web-ui-components/Row';
+import View from 'react-native-web-ui-components/View';
 import {
   getComponent,
   getTitle,
@@ -16,6 +17,14 @@ const styles = StyleSheet.create({
   fieldInline: {
     alignItems: 'center',
     paddingBottom: 10,
+  },
+  container: {
+    width: '100%',
+    display: 'flex',
+    flexWrap: 'wrap',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
   },
 });
 
@@ -159,7 +168,7 @@ class AbstractField extends React.Component {
       return <Widget {...this.props} hasError={hasError} />;
     }
 
-    const containerProps = uiSchema['ui:container'] || {};
+    const containerProps = uiSchema['ui:containerProps'] || {};
     if (uiSchema['ui:widget'] === 'hidden') {
       if (!hasError) {
         return null;
@@ -180,12 +189,12 @@ class AbstractField extends React.Component {
     const placeholder = getTitle(uiSchema['ui:placeholder'] || '', params);
     const fieldClassName = schema.type !== 'object' && Widget !== ArrayWidget ? `${id}-field` : '';
     return (
-      <Row
-        xs={12}
+      <View
         {...containerProps}
         className={`${fieldClassName} ${containerProps.className || ''}`}
         hasError={hasError}
         style={[
+          styles.container,
           uiSchema['ui:inline'] ? styles.fieldInline : styles.field,
           containerProps.style || {},
           { zIndex },
@@ -206,7 +215,7 @@ class AbstractField extends React.Component {
             {hasError ? this.renderErrors() : null}
           </React.Fragment>
         ) : null}
-      </Row>
+      </View>
     );
   }
 }
