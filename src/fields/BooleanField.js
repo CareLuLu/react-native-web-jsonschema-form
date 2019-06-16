@@ -7,6 +7,9 @@ const styles = StyleSheet.create({
   padding: {
     paddingLeft: 10,
   },
+  inline: {
+    marginBottom: 10,
+  },
 });
 
 class BooleanField extends AbstractField {
@@ -29,26 +32,30 @@ class BooleanField extends AbstractField {
       Widget = ({ value, ...props }) => (
         <CheckboxWidget {...props} value={trueValue} checked={value === trueValue} />
       );
-    } else if (widgetName === 'radio') {
+    } else if (widgetName === 'radio' || widgetName === 'radiobox') {
       const { RadioWidget } = widgets;
+      const inlineOptions = uiSchema['ui:options'] && uiSchema['ui:options'].inline;
       Widget = ({ value, style, ...props }) => (
         <React.Fragment>
           <RadioWidget
             {...props}
+            auto={uiSchema['ui:inline'] || inlineOptions}
             text={trueText}
             checked={value === trueValue}
             style={[
               uiSchema['ui:inline'] && uiSchema['ui:title'] !== false ? styles.padding : null,
+              uiSchema['ui:inline'] || inlineOptions ? styles.inline : null,
               style,
             ]}
             value={trueValue}
           />
           <RadioWidget
             {...props}
+            auto={uiSchema['ui:inline'] || inlineOptions}
             text={falseText}
             checked={value === falseValue}
             style={[
-              uiSchema['ui:inline'] ? styles.padding : null,
+              uiSchema['ui:inline'] || inlineOptions ? [styles.padding, styles.inline] : null,
               style,
             ]}
             value={falseValue}

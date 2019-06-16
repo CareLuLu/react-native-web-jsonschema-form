@@ -1,6 +1,6 @@
-import AbstractField from './AbstractField';
+import AbstractEnumerableField from './AbstractEnumerableField';
 
-class IntegerField extends AbstractField {
+class IntegerField extends AbstractEnumerableField {
   getDefaultWidget() {
     const { widgets } = this.props;
     return widgets.IntegerWidget;
