@@ -9,7 +9,11 @@ const TextareaWidget = (props) => {
 };
 
 TextareaWidget.propTypes = {
-  uiSchema: PropTypes.shape({}).isRequired,
+  uiSchema: PropTypes.shape({
+    'ui:options': PropTypes.shape({
+      rows: PropTypes.number,
+    }),
+  }).isRequired,
 };
 
 export default TextareaWidget;
