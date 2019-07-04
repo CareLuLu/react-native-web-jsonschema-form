@@ -11,9 +11,9 @@
   "author": "Gabriel Marques <gabriel@carelulu.com>",
   "license": "MIT",
   "devDependencies": {
-    "@babel/cli": "7.4.4",
-    "@babel/core": "7.4.5",
-    "@babel/plugin-proposal-class-properties": "7.4.4",
+    "@babel/cli": "7.5.0",
+    "@babel/core": "7.5.0",
+    "@babel/plugin-proposal-class-properties": "7.5.0",
     "@babel/plugin-transform-react-jsx": "7.3.0",
     "@babel/register": "7.4.4",
     "babel-eslint": "10.0.2",
