@@ -16,9 +16,9 @@ const allowedAttributes = [
 ];
 
 const AutocompleteWidget = withHandlers({
-  onSelect: ({ onChange, onSelect, name }) => (value) => {
+  onSelect: ({ onChange, onSelect, name }) => (value, item) => {
     if (isFunction(onSelect)) {
-      return onSelect(value);
+      onSelect(value, item);
     }
     return onChange(value, name);
   },
