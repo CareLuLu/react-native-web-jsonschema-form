@@ -13,6 +13,10 @@ const allowedAttributes = [
   'Item',
   'Input',
   'Menu',
+  'menuStyle',
+  'itemHeight',
+  'itemProps',
+  'itemStyle',
 ];
 
 const AutocompleteWidget = withHandlers({
