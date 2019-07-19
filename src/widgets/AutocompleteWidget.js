@@ -17,6 +17,13 @@ const allowedAttributes = [
   'itemHeight',
   'itemProps',
   'itemStyle',
+  'Spinner',
+  'spinnerHeight',
+  'EmptyResult',
+  'emptyResultHeight',
+  'throttleDelay',
+  'debounceDelay',
+  'throttleDebounceThreshold',
 ];
 
 const AutocompleteWidget = withHandlers({
