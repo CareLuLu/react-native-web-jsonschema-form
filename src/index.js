@@ -267,11 +267,12 @@ class Form extends React.Component {
   };
 
   onFocus = (name = '', update) => {
-    const { focus } = this.state;
+    const { focus, values } = this.state;
     if (name === '' || focus !== name) {
       const { onFocus, scroller } = this.props;
       const event = new FormEvent('focus', {
         name,
+        values,
         blur: focus,
         update: update || [focus, name],
       });
@@ -284,6 +285,7 @@ class Form extends React.Component {
             event: event.name,
             focus: event.params.name,
             update: expand(event.params.update),
+            values: { ...event.params.values },
           }));
         }
       });
