@@ -104,6 +104,8 @@ export const getStructure = (
   let schema = possibleSchema;
   if (schema.anyOf) {
     schema = first(schema.anyOf);
+  } else if (schema.oneOf) {
+    schema = first(schema.oneOf);
   }
   if (schema.type === 'object') {
     const schemaNode = {
