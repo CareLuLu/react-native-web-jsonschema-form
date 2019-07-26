@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { isArray, without } from 'lodash';
+import { isArray, isNaN, without } from 'lodash';
 import { withHandlers } from 'recompact';
 import Select from 'react-native-web-ui-components/Select';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
@@ -9,7 +9,10 @@ const SelectWidget = withHandlers({
   onWrappedChange: ({ name, schema, onChange }) => (value) => {
     let parsedValue = value;
     if (schema.type === 'number' || schema.type === 'integer') {
-      parsedValue = parseFloat(value) || null;
+      parsedValue = parseFloat(value);
+      if (isNaN(parsedValue)) {
+        parsedValue = null;
+      }
     } else if (schema.type === 'boolean') {
       parsedValue = value === 'true';
     }

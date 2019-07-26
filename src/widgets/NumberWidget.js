@@ -144,7 +144,8 @@ const textParserHandler = ({ currency, thousands, decimal }) => (value) => {
   }
   const thousandsRegex = new RegExp(`\\${thousands}`, 'g');
   const decimalRegex = new RegExp(`\\${decimal}`);
-  return parseFloat(value.replace(thousandsRegex, '').replace(decimalRegex, '.')) || null;
+  const result = parseFloat(value.replace(thousandsRegex, '').replace(decimalRegex, '.'));
+  return !isNaN(result) ? result : null;
 };
 
 const NumberWidget = compose(
