@@ -63,7 +63,6 @@ const styles = StyleSheet.create({
     marginTop: -10,
   },
   label: {
-    fontWeight: 'bold',
     paddingTop: 10,
     paddingBottom: 5,
   },
@@ -580,7 +579,7 @@ const FileWidget = compose(
   ...props
 }) => (
   <React.Fragment>
-    {title !== false || uiSchema['ui:toggleable'] ? (
+    {(title !== false || uiSchema['ui:toggleable']) && propertySchema.type === 'string' ? (
       <LabelWidget
         {...props}
         toggleable={!!uiSchema['ui:toggleable']}
