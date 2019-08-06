@@ -536,13 +536,18 @@ const FileWidget = compose(
   withState('dragging', 'setDragging', null),
   withProps(getProps),
   withHandlers({
-    onAreaClick: ({ dragging }) => event => (dragging && event.preventDefault()),
-    onClick: () => (event) => {
+    onAreaClick: ({ dragging }) => (event) => {
+      if (dragging || event.isDefaultPrevented()) {
+        event.stopPropagation();
+      }
+    },
+    onClick: ({ propertySchema }) => (event) => {
+      const fn = propertySchema.type === 'array' ? 'preventDefault' : 'stopPropagation';
       if (event.nativeEvent.target.tagName === 'INPUT') {
-        event.preventDefault();
+        event[fn]();
       }
       if (isField(event.nativeEvent.target, handleRegex)) {
-        event.preventDefault();
+        event[fn]();
       }
       if (event.nativeEvent.target.tagName === 'A') {
         event.stopPropagation();

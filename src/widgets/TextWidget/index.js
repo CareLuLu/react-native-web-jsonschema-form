@@ -99,6 +99,7 @@ class TextWidget extends React.Component {
     const { displayValue } = this.state;
     this.setState({
       editing: false,
+      value: displayValue,
     });
     setTimeout(() => onChange(displayValue, name));
   };
@@ -159,6 +160,7 @@ class TextWidget extends React.Component {
                 auto
                 style={[styles.fullWidth, inputStyle]}
                 value={displayValue}
+                onChange={this.onChange}
               />
               {this.renderChildren(children)}
             </View>

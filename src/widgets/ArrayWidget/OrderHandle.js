@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native';
 import View from 'react-native-web-ui-components/View';
 import Text from 'react-native-web-ui-components/Text';
 import Icon from 'react-native-web-ui-components/Icon';
+import Div from '../../Div';
 
 const styles = StyleSheet.create({
   order: {
@@ -30,18 +31,20 @@ const OrderHandle = ({
   screenType,
 }) => (
   <View {...(panHandlers || {})}>
-    <Text
-      className={handle}
-      auto
-      type={theme.colors.text}
-      style={[
-        styles.order,
-        screenType === 'xs' ? styles.xs : null,
-        titleOnly ? styles.hidden : null,
-      ]}
-    >
-      <Icon name="th" />
-    </Text>
+    <Div className={handle}>
+      <Text
+        className={handle}
+        auto
+        type={theme.colors.text}
+        style={[
+          styles.order,
+          screenType === 'xs' ? styles.xs : null,
+          titleOnly ? styles.hidden : null,
+        ]}
+      >
+        <Icon name="th" />
+      </Text>
+    </Div>
   </View>
 );
 
