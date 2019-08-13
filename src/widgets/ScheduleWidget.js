@@ -298,7 +298,6 @@ const getProps = ({
     ];
   }
 
-
   const options = { ...(propertyUiSchema['ui:options'] || {}) };
   options.orderable = false;
   if (checkbox) {
