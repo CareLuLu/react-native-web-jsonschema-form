@@ -57,7 +57,6 @@ const styles = StyleSheet.create({
   },
 });
 
-
 const defaultReject = (err) => { throw err; };
 
 const getButtonPosition = (position) => {
@@ -190,7 +189,7 @@ class Form extends React.Component {
       }
 
       // If the metaSchema changes, we reset the metaSchema.
-      if (!isEqual(nextProps.metaSchemaProp, metaSchemaProp)) {
+      if (!isEqual(nextProps.metaSchema, metaSchemaProp)) {
         state = Object.assign(state || {}, {
           event: 'rebuild:meta',
           metaSchemaProp: nextProps.metaSchema,
