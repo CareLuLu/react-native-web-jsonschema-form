@@ -106,7 +106,7 @@ const ItemComponentHandler = ({ style, ...props }) => ({ panHandlers }) => ( // 
 );
 
 const DraggableItem = compose(
-  withProps(({ name }) => ({ handle: `${name}__handle` })),
+  withProps(({ name }) => ({ handle: `${name.replace(/\./g, '_')}__handle` })),
   withHandlers({
     onDragStart: onDragStartHandler,
     onDragEnd: onDragEndHandler,

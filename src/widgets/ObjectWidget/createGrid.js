@@ -9,6 +9,7 @@ import { Helmet, style } from 'react-native-web-ui-components/Helmet';
 import { getComponent, withPrefix } from '../../utils';
 
 /* eslint react/prop-types: 0 */
+/* eslint no-use-before-define: 0 */
 
 const styles = StyleSheet.create({
   labelTop: {
@@ -105,31 +106,36 @@ const createProperty = (property, gridItem, index, params) => {
   return Property;
 };
 
-const createGridItem = (
+const getLabelComponent = ({
+  key,
+  first,
+  params,
+  gridItem,
+}) => {
+  const { widgets } = params;
+  const Widget = widgets.LabelWidget;
+  const Label = props => (
+    <Widget
+      {...props}
+      key={key}
+      hasError={false}
+      hasTitle
+      toggleable={false}
+      style={[first ? styles.labelTop : styles.label, gridItem.style]}
+    >
+      {gridItem.children}
+    </Widget>
+  );
+  Label.key = key;
+  return Label;
+};
+
+const getGeneralComponent = ({
   gridItem,
   key,
   zIndex,
-  first,
   params,
-) => {
-  const { widgets } = params;
-  if (gridItem.type === 'label') {
-    const Widget = widgets.LabelWidget;
-    const Label = props => (
-      <Widget
-        {...props}
-        key={key}
-        hasError={false}
-        hasTitle
-        toggleable={false}
-        style={[first ? styles.labelTop : styles.label, gridItem.style]}
-      >
-        {gridItem.children}
-      </Widget>
-    );
-    Label.key = key;
-    return Label;
-  }
+}) => {
   let Wrapper;
   if (gridItem.type === 'column') {
     Wrapper = Column;
@@ -143,7 +149,13 @@ const createGridItem = (
     if (isString(child)) {
       return createProperty(child, gridItem, i, params);
     }
-    return createGridItem(child, `${key}-${i}`, gridItem.children.length - i, i === 0, params);
+    return createGridItem({
+      params,
+      gridItem: child,
+      key: `${key}-${i}`,
+      zIndex: gridItem.children.length - i,
+      first: i === 0,
+    });
   });
   const GridItem = props => (
     <Wrapper
@@ -158,14 +170,22 @@ const createGridItem = (
   return GridItem;
 };
 
+const createGridItem = (props) => {
+  const { gridItem } = props;
+  if (gridItem.type === 'label') {
+    return getLabelComponent(props);
+  }
+  return getGeneralComponent(props);
+};
+
 const createGrid = (grid, params) => {
-  const items = grid.map((gridItem, i) => createGridItem(
-    gridItem,
-    `${params.name}-${i}`,
-    grid.length - i,
-    i === 0,
+  const items = grid.map((gridItem, i) => createGridItem({
     params,
-  ));
+    gridItem,
+    first: i === 0,
+    zIndex: grid.length - i,
+    key: `${params.name}-${i}`,
+  }));
   return (props) => {
     const currentStyle = props.style; // eslint-disable-line
     return (

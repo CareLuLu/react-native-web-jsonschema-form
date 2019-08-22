@@ -9,8 +9,8 @@ class FormEvent {
     this.prevented = true;
   }
 
-  allowed() {
-    return this.prevented === false;
+  isDefaultPrevented() {
+    return this.prevented === true;
   }
 }
 

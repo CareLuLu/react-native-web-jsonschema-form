@@ -1,10 +1,10 @@
 {
   "name": "react-native-web-jsonschema-form",
-  "version": "1.1.12",
+  "version": "1.1.13",
   "private": false,
   "main": "index.js",
   "scripts": {
-    "build": "rm -rf dist && babel src -d dist && cp package.json dist/package.json && cp README.md dist/README.md",
+    "build": "rm -rf dist && babel src -d dist && cp package.json dist/package.json && cp README.md dist/README.md && rm -rf ../../app/node_modules/react-native-web-jsonschema-form && cp -r dist ../../app/node_modules/react-native-web-jsonschema-form",
     "build:windows": "rmdir /s /q dist && babel src -d dist && xcopy package.json dist\\package.json && xcopy README.md dist/README.md",
     "lint": "eslint ./src -c ./.eslintrc --ext .js"
   },

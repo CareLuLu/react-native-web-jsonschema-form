@@ -77,7 +77,6 @@ const addToArray = arr => v => arr.push(v);
 
 class Form extends React.Component {
   static propTypes = {
-    theme: PropTypes.shape().isRequired,
     name: PropTypes.string,
     formData: PropTypes.shape(),
     schema: PropTypes.shape(),
@@ -97,10 +96,12 @@ class Form extends React.Component {
     CancelButton: PropTypes.elementType,
     submitButton: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
     SubmitButton: PropTypes.elementType,
+    focus: PropTypes.string,
     scroller: PropTypes.shape(),
-    widgets: PropTypes.arrayOf(PropTypes.elementType),
+    widgets: PropTypes.shape(),
     filterEmptyValues: PropTypes.bool,
-    ignoreFormDataUpdates: PropTypes.bool, // eslint-disable-line
+    ignoreFormDataUpdates: PropTypes.bool,
+    loseFocusOnOutsideClick: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -127,9 +128,11 @@ class Form extends React.Component {
     submitButton: true,
     SubmitButton: DefaultSubmitButton,
     scroller: null,
-    widgets: [],
+    focus: '',
+    widgets: {},
     filterEmptyValues: false,
     ignoreFormDataUpdates: false,
+    loseFocusOnOutsideClick: true,
   };
 
   static getDerivedStateFromProps(nextProps, prevState) {
@@ -197,6 +200,11 @@ class Form extends React.Component {
         });
       }
     }
+    if (nextProps.focus !== prevState.focusProp) {
+      state = state || {};
+      state.focus = nextProps.focus;
+      state.focusProp = nextProps.focus;
+    }
     return state;
   }
 
@@ -211,16 +219,20 @@ class Form extends React.Component {
       widgets,
       errorSchema,
       metaSchema,
+      focus,
     } = props;
     this.id = `Form__${name || Math.random().toString(36).substr(2, 9)}`;
     this.fieldRegex = new RegExp(`${this.id}-field`);
     this.mountSteps = [];
+    this.forms = [];
     this.widgets = Object.assign({}, defaultWidgets, widgets);
+
     const structure = getStructure(schema, uiSchema);
     const formDataProp = getValues(formData, structure.schema);
     this.state = {
+      focus,
       formDataProp,
-      focus: '',
+      focusProp: focus,
       update: {},
       event: 'build',
       clearCache: false,
@@ -276,7 +288,7 @@ class Form extends React.Component {
         update: update || [focus, name],
       });
       this.run(onFocus(event), () => {
-        if (event.allowed()) {
+        if (!event.isDefaultPrevented()) {
           if (scroller) {
             scroller.setNativeProps({ scrollEnabled: true });
           }
@@ -319,10 +331,10 @@ class Form extends React.Component {
       nextErrors,
       focus: nextFocus,
       path: toPath(name),
-      update: [nextFocus, name].concat(update),
+      update: [focus, nextFocus, name].concat(update),
     });
     this.run(onChange(event), () => {
-      if (event.allowed()) {
+      if (!event.isDefaultPrevented()) {
         const { path } = event.params;
         set(event.params.values, path, event.params.value);
         if (event.params.nextMeta !== false) {
@@ -367,11 +379,11 @@ class Form extends React.Component {
     }
     const event = new FormEvent('submit', { values: nextValues });
     this.run(onSubmit(event), (response) => {
-      if (event.allowed()) {
+      if (!event.isDefaultPrevented()) {
         this.onSuccess(response);
       }
     }, (errorSchema) => {
-      if (event.allowed()) {
+      if (!event.isDefaultPrevented()) {
         this.onError(errorSchema);
       }
     });
@@ -386,7 +398,7 @@ class Form extends React.Component {
       update: 'all',
     });
     this.run(onSuccess(event), () => {
-      if (event.allowed()) {
+      if (!event.isDefaultPrevented()) {
         this.onMount(() => this.setState({
           event: event.name,
           errors: getErrors({}, schema),
@@ -412,7 +424,7 @@ class Form extends React.Component {
       update: 'all',
     });
     this.run(onError(event), () => {
-      if (event.allowed()) {
+      if (!event.isDefaultPrevented()) {
         this.onMount(() => this.setState({
           event: event.name,
           errors: event.params.errors,
@@ -439,7 +451,8 @@ class Form extends React.Component {
   };
 
   clickListener = (event) => {
-    if (Platform.OS === 'web') {
+    const { loseFocusOnOutsideClick } = this.props;
+    if (Platform.OS === 'web' && loseFocusOnOutsideClick) {
       if (!isField(event.target, this.fieldRegex)) {
         this.onMount(() => this.onFocus());
       }
@@ -528,7 +541,6 @@ class Form extends React.Component {
       clearCache,
     } = this.state;
     const {
-      theme,
       children,
       cancelButton,
       CancelButton,
@@ -552,8 +564,8 @@ class Form extends React.Component {
       <React.Fragment>
         <Row className={`Form ${this.id}`} style={styles.form}>
           <ObjectField
+            {...this.props}
             name=""
-            theme={theme}
             id={this.id}
             event={event}
             schema={schema}

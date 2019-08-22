@@ -260,12 +260,14 @@ const getProps = ({
   }
 
   let title = false;
-  if (schema.type === 'array' && uiSchema['ui:title'] !== false) {
-    title = getTitle(uiSchema['ui:title'] || FIELD_TITLE, {
-      name,
-      value,
-      key: last(name.split('.')),
-    });
+  if (schema.type === 'array') {
+    if (uiSchema['ui:title'] !== false) {
+      title = getTitle(uiSchema['ui:title'] || FIELD_TITLE, {
+        name,
+        value,
+        key: last(name.split('.')),
+      });
+    }
     propertyUiSchema['ui:title'] = false;
     propertyUiSchema['ui:options'] = propertyUiSchema['ui:options'] || {};
     propertyUiSchema['ui:options'].addable = false;
@@ -599,6 +601,7 @@ const FileWidget = compose(
     <Dropzone
       onDrop={onDrop}
       accept={accept}
+      disabled={!!uiSchema['ui:disabled']}
       cameraText={cameraText}
       albumText={albumText}
       fileText={fileText}

@@ -66,7 +66,11 @@ const isValid = (key, pick, omitted, include) => (
   )
 );
 
-const orderedKeys = (schema, uiSchema) => uniq((uiSchema['ui:order'] || []).concat(Object.keys(schema.properties)));
+const orderedKeys = (schema, uiSchema) => uniq((
+  uiSchema['ui:order']
+  || uiSchema['ui:pick']
+  || []
+).concat(Object.keys(schema.properties)));
 
 const orderedEach = (schema, uiSchema, iterator) => {
   const keys = orderedKeys(schema, uiSchema);

@@ -17,6 +17,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
+    maxWidth: '100%',
   },
   labelContainer: {
     paddingTop: 10,
