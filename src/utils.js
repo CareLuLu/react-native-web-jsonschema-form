@@ -66,17 +66,6 @@ const isValid = (key, pick, omitted, include) => (
   )
 );
 
-const orderedKeys = (schema, uiSchema) => uniq((
-  uiSchema['ui:order']
-  || uiSchema['ui:pick']
-  || []
-).concat(Object.keys(schema.properties)));
-
-const orderedEach = (schema, uiSchema, iterator) => {
-  const keys = orderedKeys(schema, uiSchema);
-  each(keys, key => iterator(schema.properties[key], key));
-};
-
 const getUiSchemaPick = (schema, uiSchema) => {
   let pick = uiSchema['ui:pick'] || [];
   if (pick === 'required') {
@@ -90,6 +79,16 @@ const getUiSchemaPick = (schema, uiSchema) => {
     }
   }
   return pick;
+};
+
+const orderedKeys = (schema, uiSchema) => uniq((
+  uiSchema['ui:order']
+  || getUiSchemaPick(schema, uiSchema)
+).concat(Object.keys(schema.properties)));
+
+const orderedEach = (schema, uiSchema, iterator) => {
+  const keys = orderedKeys(schema, uiSchema);
+  each(keys, key => iterator(schema.properties[key], key));
 };
 
 export const getStructure = (
@@ -175,7 +174,10 @@ export const getStructure = (
 
 export const isField = (element, classNameRegex) => {
   for (let node = element; node && node !== document; node = node.parentNode) {
-    if (classNameRegex.test(node.getAttribute('data-class') || '')) {
+    if (
+      classNameRegex.test(node.className || '')
+      || classNameRegex.test(node.getAttribute('data-class') || '')
+    ) {
       return true;
     }
   }

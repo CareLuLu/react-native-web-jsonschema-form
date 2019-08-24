@@ -102,6 +102,7 @@ class Form extends React.Component {
     filterEmptyValues: PropTypes.bool,
     ignoreFormDataUpdates: PropTypes.bool,
     loseFocusOnOutsideClick: PropTypes.bool,
+    insideClickRegex: PropTypes.instanceOf(RegExp),
   };
 
   static defaultProps = {
@@ -133,6 +134,7 @@ class Form extends React.Component {
     filterEmptyValues: false,
     ignoreFormDataUpdates: false,
     loseFocusOnOutsideClick: true,
+    insideClickRegex: undefined,
   };
 
   static getDerivedStateFromProps(nextProps, prevState) {
@@ -159,7 +161,7 @@ class Form extends React.Component {
         metaSchemaProp: nextProps.metaSchema,
         values: cloneDeep(values),
         errors: cloneDeep(getErrors(nextProps.errorSchema, schema)),
-        meta: cloneDeep(getMeta(nextProps.metaSchema || values, schema, uiSchema)),
+        meta: cloneDeep(getMeta(nextProps.metaSchema || cloneDeep(values), schema, uiSchema)),
       };
     } else {
       const {
@@ -196,7 +198,7 @@ class Form extends React.Component {
         state = Object.assign(state || {}, {
           event: 'rebuild:meta',
           metaSchemaProp: nextProps.metaSchema,
-          meta: cloneDeep(getMeta(nextProps.metaSchema || values, schema, uiSchema)),
+          meta: cloneDeep(getMeta(nextProps.metaSchema || cloneDeep(values), schema, uiSchema)),
         });
       }
     }
@@ -220,9 +222,10 @@ class Form extends React.Component {
       errorSchema,
       metaSchema,
       focus,
+      insideClickRegex,
     } = props;
     this.id = `Form__${name || Math.random().toString(36).substr(2, 9)}`;
-    this.fieldRegex = new RegExp(`${this.id}-field`);
+    this.fieldRegex = insideClickRegex || new RegExp(`(${this.id}-field|react-datepicker)`);
     this.mountSteps = [];
     this.forms = [];
     this.widgets = Object.assign({}, defaultWidgets, widgets);
