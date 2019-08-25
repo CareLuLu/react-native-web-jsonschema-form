@@ -177,7 +177,7 @@ class Form extends React.Component {
       const nextFormDataProp = getValues(nextProps.formData, schema);
       if (!nextProps.ignoreFormDataUpdates && !isEqual(formDataProp, nextFormDataProp)) {
         state = {
-          clearCache: true,
+          update: 'all',
           event: 'rebuild:form-data',
           values: cloneDeep(merge(values, nextFormDataProp)),
           formDataProp: nextFormDataProp,
