@@ -327,6 +327,7 @@ class Form extends React.Component {
     }
     const event = new FormEvent('change', {
       name,
+      meta,
       value,
       silent,
       values,
