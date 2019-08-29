@@ -1,39 +1,41 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { isArray, isNaN, without } from 'lodash';
-import { withHandlers } from 'recompact';
 import Select from 'react-native-web-ui-components/Select';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
+import { useOnChange, useOnFocus } from '../utils';
 
-const SelectWidget = withHandlers({
-  onWrappedChange: ({ name, schema, onChange }) => (value) => {
-    let parsedValue = value;
-    if (schema.type === 'number' || schema.type === 'integer') {
-      parsedValue = parseFloat(value);
-      if (isNaN(parsedValue)) {
-        parsedValue = null;
-      }
-    } else if (schema.type === 'boolean') {
-      parsedValue = value === 'true';
+const parser = ({ schema }) => (value) => {
+  let parsedValue = value;
+  if (schema.type === 'number' || schema.type === 'integer') {
+    parsedValue = parseFloat(value);
+    if (isNaN(parsedValue)) {
+      parsedValue = null;
     }
-    onChange(parsedValue, name);
-  },
-  onWrappedFocus: ({ name, onFocus }) => () => onFocus(name),
-})(({
-  schema,
-  uiSchema,
-  hasError,
-  onWrappedFocus,
-  onWrappedChange,
-  name,
-  focus,
-  value,
-  readonly,
-  disabled,
-  placeholder,
-  auto,
-  style,
-}) => {
+  } else if (schema.type === 'boolean') {
+    parsedValue = value === 'true';
+  }
+  return parsedValue;
+};
+
+const SelectWidget = (props) => {
+  const {
+    schema,
+    uiSchema,
+    hasError,
+    name,
+    focus,
+    value,
+    readonly,
+    disabled,
+    placeholder,
+    auto,
+    style,
+  } = props;
+
+  const onFocus = useOnFocus(props);
+  const onChange = useOnChange({ ...props, parser });
+
   let values = uiSchema['ui:enum'] || schema.enum || [];
   if (isArray(uiSchema['ui:enumExcludes'])) {
     values = without(values, uiSchema['ui:enumExcludes']);
@@ -51,20 +53,18 @@ const SelectWidget = withHandlers({
       values={values.map(v => `${v}`)}
       labels={labels}
       autoFocus={autoFocus}
-      onFocus={onWrappedFocus}
-      onChange={onWrappedChange}
+      onFocus={onFocus}
+      onChange={onChange}
       placeholder={placeholder}
       containerStyle={style}
     />
   );
-});
+};
 
 SelectWidget.propTypes = {
-  schema: PropTypes.shape({}).isRequired,
-  uiSchema: PropTypes.shape({}).isRequired,
+  schema: PropTypes.shape().isRequired,
+  uiSchema: PropTypes.shape().isRequired,
   hasError: PropTypes.bool.isRequired,
-  onFocus: PropTypes.func.isRequired,
-  onChange: PropTypes.func.isRequired,
   name: PropTypes.string.isRequired,
   focus: PropTypes.string,
   value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),

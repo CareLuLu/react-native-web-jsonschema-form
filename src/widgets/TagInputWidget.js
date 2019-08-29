@@ -2,9 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { noop, pick, isFunction } from 'lodash';
-import { withHandlers } from 'recompact';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
 import RNTagInput from 'react-native-web-ui-components/TagInput';
+import { useOnChange, useOnFocus } from '../utils';
 
 const styles = StyleSheet.create({
   defaults: {
@@ -28,16 +28,12 @@ const allowedAttributes = [
   'keyboardType',
   'multiline',
   'numberOfLines',
-  'onChange',
-  'onFocus',
   'items',
-  'getItemValue',
   'isMatch',
   'text',
   'tagStyle',
   'inputStyle',
   'allowNew',
-  'buildNew',
   'Item',
   'Menu',
   'Tag',
@@ -51,42 +47,49 @@ const parseValue = (type, text) => {
   return text;
 };
 
-const TagInputWidget = withHandlers({
-  onFocus: ({ name, onFocus }) => () => onFocus(name),
-  onChange: ({ name, onChange }) => tags => onChange(tags, name),
-  buildNew: ({ schema, buildNew }) => (text) => {
-    if (isFunction(buildNew)) {
-      return buildNew(text);
-    }
-    if (schema.items.type === 'object') {
-      const [attribute] = Object.keys(schema.items.properties);
-      const { type } = schema.items.properties[attribute];
-      return { [attribute]: parseValue(type, text) };
-    }
-    return parseValue(schema.items.type, text);
-  },
-  getItemValue: ({ schema, getItemValue }) => (item) => {
-    if (isFunction(getItemValue)) {
-      return getItemValue(item);
-    }
-    if (schema.items.type === 'object') {
-      const [attribute] = Object.keys(schema.items.properties);
-      return item[attribute];
-    }
-    return item;
-  },
-})(({
-  auto,
-  name,
-  focus,
-  style,
-  schema,
-  uiSchema,
-  ...props
-}) => {
+const useBuildNew = ({ schema, buildNew }) => (text) => {
+  if (isFunction(buildNew)) {
+    return buildNew(text);
+  }
+  if (schema.items.type === 'object') {
+    const [attribute] = Object.keys(schema.items.properties);
+    const { type } = schema.items.properties[attribute];
+    return { [attribute]: parseValue(type, text) };
+  }
+  return parseValue(schema.items.type, text);
+};
+
+const useGetItemValue = ({ schema, getItemValue }) => (item) => {
+  if (isFunction(getItemValue)) {
+    return getItemValue(item);
+  }
+  if (schema.items.type === 'object') {
+    const [attribute] = Object.keys(schema.items.properties);
+    return item[attribute];
+  }
+  return item;
+};
+
+const TagInputWidget = (props) => {
+  const {
+    auto,
+    name,
+    focus,
+    style,
+    schema,
+    uiSchema,
+    ...nextProps
+  } = props;
+
+  const onFocus = useOnFocus(props);
+  const onChange = useOnChange(props);
+  const buildNew = useBuildNew(props);
+  const getItemValue = useGetItemValue(props);
+
   if (schema.type !== 'array') {
     throw new Error('TagInputWidget can only be used with arrays.');
   }
+
   const currentStyle = [
     styles.defaults,
     auto ? styles.auto : styles.fullWidth,
@@ -95,16 +98,20 @@ const TagInputWidget = withHandlers({
   const focused = focus === name || (focus === null && uiSchema['ui:autofocus']);
   return (
     <RNTagInput
-      {...pick(props, allowedAttributes)}
+      {...pick(nextProps, allowedAttributes)}
       autoCapitalize="none"
       className="TagInput__widget"
       style={currentStyle}
       onSubmitEditing={noop}
       autoFocus={focused}
       name={name}
+      onFocus={onFocus}
+      onChange={onChange}
+      buildNew={buildNew}
+      getItemValue={getItemValue}
     />
   );
-});
+};
 
 TagInputWidget.propTypes = {
   name: PropTypes.string.isRequired,

@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
-import { withHandlers } from 'recompact';
 import { pick } from 'lodash';
 import View from 'react-native-web-ui-components/View';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
@@ -11,6 +10,7 @@ import TimeRangePicker, {
   STRING_DECODER,
   STRING_ENCODER,
 } from 'react-native-web-ui-components/TimeRangePicker';
+import { useOnChange, useOnFocus } from '../utils';
 
 const styles = StyleSheet.create({
   empty: {},
@@ -37,27 +37,27 @@ const timePickerAttributes = [
   'unselectedStyle',
 ];
 
-const TimeRangeWidget = withHandlers({
-  onWrappedFocus: ({ name, onFocus }) => () => onFocus(name),
-  onWrappedChange: ({ name, onChange }) => value => onChange(value, name),
-})(({
-  schema,
-  uiSchema,
-  hasError,
-  name,
-  focus,
-  value,
-  readonly,
-  disabled,
-  auto,
-  onWrappedChange,
-  onWrappedFocus,
-  encoder,
-  decoder,
-  header,
-  style,
-  ...props
-}) => {
+const TimeRangeWidget = (props) => {
+  const {
+    schema,
+    uiSchema,
+    hasError,
+    name,
+    focus,
+    value,
+    readonly,
+    disabled,
+    auto,
+    encoder,
+    decoder,
+    header,
+    style,
+    ...nextProps
+  } = props;
+
+  const onFocus = useOnFocus(props);
+  const onChange = useOnChange(props);
+
   const currentStyle = [
     styles.defaults,
     auto ? styles.auto : styles.fullWidth,
@@ -67,7 +67,7 @@ const TimeRangeWidget = withHandlers({
   }
   currentStyle.push(style);
 
-  const timePickerProps = pick(props, timePickerAttributes);
+  const timePickerProps = pick(nextProps, timePickerAttributes);
   timePickerProps.header = header;
   if (encoder !== null) {
     if (encoder === 'number') {
@@ -90,12 +90,12 @@ const TimeRangeWidget = withHandlers({
         disabled={disabled}
         readonly={readonly}
         value={value}
-        onFocus={onWrappedFocus}
-        onChange={onWrappedChange}
+        onFocus={onFocus}
+        onChange={onChange}
       />
     </View>
   );
-});
+};
 
 TimeRangeWidget.propTypes = {
   schema: PropTypes.shape({}).isRequired,
@@ -122,8 +122,6 @@ TimeRangeWidget.defaultProps = {
   disabled: false,
   auto: false,
   style: null,
-  text: undefined,
-  checked: false,
   encoder: null,
   decoder: null,
   header: true,

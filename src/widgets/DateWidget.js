@@ -1,10 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
-import { withHandlers } from 'recompact';
 import Datepicker from 'react-native-web-ui-components/Datepicker';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
 import createDomStyle from 'react-native-web-ui-components/createDomStyle';
+import { useOnChange, useOnFocus } from '../utils';
 
 const styles = StyleSheet.create({
   defaults: {
@@ -18,25 +18,25 @@ const styles = StyleSheet.create({
   },
 });
 
-const DateWidget = withHandlers({
-  onWrappedFocus: ({ name, onFocus }) => () => onFocus(name),
-  onWrappedChange: ({ name, onChange }) => value => onChange(value, name),
-})(({
-  uiSchema,
-  onChange,
-  onWrappedChange,
-  onWrappedFocus,
-  name,
-  focus,
-  value,
-  placeholder,
-  readonly,
-  disabled,
-  hasError,
-  auto,
-  style,
-  showCalendarOnFocus,
-}) => {
+const DateWidget = (props) => {
+  const {
+    uiSchema,
+    onChange,
+    name,
+    focus,
+    value,
+    placeholder,
+    readonly,
+    disabled,
+    hasError,
+    auto,
+    style,
+    showCalendarOnFocus,
+  } = props;
+
+  const onWrappedFocus = useOnFocus(props);
+  const onWrappedChange = useOnChange(props);
+
   const focused = focus === name || (focus === null && uiSchema['ui:autofocus']);
   const css = [styles.defaults];
   css.push(auto ? styles.auto : styles.fullWidth);
@@ -50,6 +50,7 @@ const DateWidget = withHandlers({
       silent: true,
     }));
   }
+
   return (
     <Datepicker
       disabled={disabled}
@@ -77,11 +78,10 @@ const DateWidget = withHandlers({
       `}
     />
   );
-});
+};
 
 DateWidget.propTypes = {
-  uiSchema: PropTypes.shape({}).isRequired,
-  onFocus: PropTypes.func.isRequired,
+  uiSchema: PropTypes.shape().isRequired,
   onChange: PropTypes.func.isRequired,
   name: PropTypes.string.isRequired,
   focus: PropTypes.string,

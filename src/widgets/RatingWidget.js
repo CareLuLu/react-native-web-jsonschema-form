@@ -1,13 +1,12 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, Platform } from 'react-native';
-import { withProps, withHandlers, compose } from 'recompact';
 import View from 'react-native-web-ui-components/View';
 import TouchableOpacity from 'react-native-web-ui-components/TouchableOpacity';
 import Rating from 'react-native-web-ui-components/Rating';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
 import createDomStyle from 'react-native-web-ui-components/createDomStyle';
-import { withTheme } from 'react-native-web-ui-components/Theme';
+import { useTheme } from 'react-native-web-ui-components/Theme';
 import { Helmet, style } from 'react-native-web-ui-components/Helmet';
 
 /* eslint react/destructuring-assignment: 0 */
@@ -31,55 +30,54 @@ const styles = StyleSheet.create({
   },
 });
 
-const RatingWidget = compose(
-  withProps(({ name }) => ({
-    id: `RatingWidget__${name.replace(/\./g, '-')}`,
-  })),
-  withHandlers(() => {
-    const state = {
-      touchable: null,
-      pageX: null,
-    };
-    return {
-      onTouchableMounted: ({ id }) => (ref) => {
-        state.touchable = ref;
-        if (Platform.OS === 'web') {
-          state.pageX = () => document.querySelector(`[data-class~="${id}"]`).getBoundingClientRect().left;
-        } else {
-          setTimeout(() => {
-            if (state.touchable && state.touchable.measure) {
-              state.touchable.measure((fx, fy, width, height, px) => {
-                state.pageX = () => px;
-              });
-            } else {
-              state.pageX = () => 0;
-            }
-          });
-        }
-      },
-      onPress: ({ name, onChange }) => (evt) => {
-        const x = evt.nativeEvent.pageX - state.pageX();
-        const value = Math.min(5, Math.ceil(((x / 94) * 5) / 0.5) * 0.5);
-        onChange(value, name);
-      },
-    };
-  }),
-)(({
-  id,
-  name,
-  value,
-  readonly,
-  disabled,
-  hasError,
-  onPress,
-  auto,
-  iconName,
-  fullStyle,
-  emptyStyle,
-  onTouchableMounted,
-  themeInputStyle,
-  ...props
-}) => {
+const useOnTouchableMounted = ({ id, state }) => (ref) => {
+  const nextState = { touchable: ref };
+  if (Platform.OS === 'web') {
+    nextState.pageX = () => document.querySelector(`[data-class~="${id}"]`).getBoundingClientRect().left;
+    state.current = nextState; // eslint-disable-line
+  } else {
+    setTimeout(() => {
+      if (nextState.touchable && nextState.touchable.measure) {
+        nextState.touchable.measure((fx, fy, width, height, px) => {
+          nextState.pageX = () => px;
+        });
+      } else {
+        nextState.pageX = () => 0;
+      }
+      state.current = nextState; // eslint-disable-line
+    });
+  }
+};
+
+const useOnPress = ({ state, name, onChange }) => (evt) => {
+  const x = evt.nativeEvent.pageX - state.current.pageX();
+  const value = Math.min(5, Math.ceil(((x / 94) * 5) / 0.5) * 0.5);
+  onChange(value, name);
+};
+
+const RatingWidget = (preProps) => {
+  const props = useTheme('RatingWidget', preProps);
+
+  const {
+    name,
+    value,
+    readonly,
+    disabled,
+    hasError,
+    auto,
+    iconName,
+    fullStyle,
+    emptyStyle,
+    themeInputStyle,
+    ...nextProps
+  } = props;
+
+  const id = `RatingWidget__${name.replace(/\./g, '-')}`;
+
+  const state = useRef();
+  const onTouchableMounted = useOnTouchableMounted({ id, state });
+  const onPress = useOnPress({ ...props, state });
+
   if (disabled || readonly) {
     return (
       <View
@@ -87,7 +85,7 @@ const RatingWidget = compose(
           styles.defaults,
           themeInputStyle.opacity,
           auto ? null : styles.fullWidth,
-          props.style,
+          nextProps.style,
         ]}
       >
         <Rating
@@ -102,8 +100,10 @@ const RatingWidget = compose(
       </View>
     );
   }
+
   const fullCss = createDomStyle([styles.full, fullStyle]);
   const emptyCss = createDomStyle([styles.empty, emptyStyle]);
+
   return (
     <TouchableOpacity
       onRef={onTouchableMounted}
@@ -112,7 +112,7 @@ const RatingWidget = compose(
         styles.defaults,
         themeInputStyle.opacity,
         auto ? styles.auto : styles.fullWidth,
-        props.style,
+        nextProps.style,
       ]}
       onPress={onPress}
     >
@@ -152,7 +152,7 @@ const RatingWidget = compose(
       />
     </TouchableOpacity>
   );
-});
+};
 
 RatingWidget.propTypes = {
   themeInputStyle: PropTypes.shape().isRequired,
@@ -182,4 +182,4 @@ RatingWidget.defaultProps = {
   emptyStyle: styles.empty,
 };
 
-export default withTheme('RatingWidget')(RatingWidget);
+export default RatingWidget;

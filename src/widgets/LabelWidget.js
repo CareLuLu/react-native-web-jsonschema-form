@@ -2,8 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
 import { pick, omit } from 'lodash';
-import { withHandlers, compose } from 'recompact';
-import { withTheme } from 'react-native-web-ui-components/Theme';
+import { useTheme } from 'react-native-web-ui-components/Theme';
 import View from 'react-native-web-ui-components/View';
 import Text from 'react-native-web-ui-components/Text';
 import Checkbox from 'react-native-web-ui-components/Checkbox';
@@ -40,30 +39,33 @@ const styles = StyleSheet.create({
   },
 });
 
-const LabelWidget = compose(
-  withHandlers({
-    onPress: ({
-      name,
-      meta,
-      value,
-      onChange,
-    }) => checked => onChange(value, name, {
-      nextMeta: { ...meta, 'ui:disabled': !!checked },
-    }),
-  }),
-)(({
-  children,
-  theme,
-  themeTextStyle,
-  style,
-  hasError,
-  label,
+const useOnPress = ({
+  name,
   meta,
-  auto,
-  hasTitle,
-  toggleable,
-  onPress,
-}) => {
+  value,
+  onChange,
+}) => checked => onChange(value, name, {
+  nextMeta: { ...meta, 'ui:disabled': !!checked },
+});
+
+const LabelWidget = (preProps) => {
+  const props = useTheme('LabelWidget', preProps);
+
+  const {
+    children,
+    theme,
+    themeTextStyle,
+    style,
+    hasError,
+    label,
+    meta,
+    auto,
+    hasTitle,
+    toggleable,
+  } = props;
+
+  const onPress = useOnPress(props);
+
   const currentContainerStyle = [
     styles.container,
     auto ? null : styles.fullWidth,
@@ -79,6 +81,7 @@ const LabelWidget = compose(
     currentTextStyle.push(themeTextStyle.text);
   }
   const css = StyleSheet.flatten(style || {});
+
   return (
     <View style={[currentContainerStyle, pick(css, viewStyleKeys)]}>
       {toggleable ? (
@@ -100,12 +103,11 @@ const LabelWidget = compose(
       ) : null}
     </View>
   );
-});
+};
 
 LabelWidget.propTypes = {
   theme: PropTypes.shape().isRequired,
   themeTextStyle: PropTypes.shape().isRequired,
-  name: PropTypes.string.isRequired,
   hasError: PropTypes.bool.isRequired,
   hasTitle: PropTypes.bool.isRequired,
   toggleable: PropTypes.bool.isRequired,
@@ -120,6 +122,7 @@ LabelWidget.defaultProps = {
   style: null,
   label: false,
   auto: false,
+  children: null,
 };
 
-export default withTheme('LabelWidget')(LabelWidget);
+export default LabelWidget;

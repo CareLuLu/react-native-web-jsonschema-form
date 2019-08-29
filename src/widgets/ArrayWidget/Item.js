@@ -167,8 +167,8 @@ Item.propTypes = {
 Item.defaultProps = {
   panHandlers: {},
   auto: false,
-  style: null,
-  itemStyle: null,
+  style: {},
+  itemStyle: {},
   onMouseDown: noop,
   onMouseUp: noop,
   onTouchStart: noop,

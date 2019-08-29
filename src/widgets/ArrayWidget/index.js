@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   each,
   last,
@@ -6,12 +6,6 @@ import {
   isArray,
   isFunction,
 } from 'lodash';
-import {
-  withProps,
-  withHandlers,
-  withStateHandlers,
-  compose,
-} from 'recompact';
 import { titleize } from 'underscore.string';
 import Screen from 'react-native-web-ui-components/Screen';
 import {
@@ -64,13 +58,15 @@ const adjustUiSchema = (possibleUiSchema, i, props) => {
   return adjustedUiSchema;
 };
 
-const getProps = ({
-  name,
-  value,
-  schema,
-  fields,
-  uiSchema,
-}) => {
+const getProps = (props) => {
+  const {
+    name,
+    value,
+    schema,
+    fields,
+    uiSchema,
+  } = props;
+
   const screenType = Screen.getType();
   const title = getTitle(uiSchema['ui:title'] || FIELD_TITLE, {
     name,
@@ -100,10 +96,10 @@ const getProps = ({
     OrderComponent: options.OrderComponent || OrderHandle,
     RemoveComponent: options.RemoveComponent || RemoveHandle,
   };
-  return extraProps;
+  return { ...props, ...extraProps };
 };
 
-const onAddHandler = ({
+const useOnAdd = ({
   name,
   meta,
   value,
@@ -129,7 +125,7 @@ const onAddHandler = ({
   });
 };
 
-const onRemoveHandler = ({
+const useOnRemove = ({
   name,
   value,
   onChange,
@@ -153,42 +149,38 @@ const onRemoveHandler = ({
   setTimeout(reorder);
 };
 
-const onItemRefHandler = ({ refs }) => (ref, index) => {
+const useOnItemRef = ({ refs }) => (ref, index) => {
   refs[index] = ref; // eslint-disable-line
 };
 
-const PropertyComponentHandler = topProps => innerProps => (
-  <DraggableItem {...topProps} {...innerProps} />
-);
+const useSetDragging = ({ setDragging, setState }) => (dragging) => {
+  if (setDragging) {
+    setDragging(dragging);
+  }
+  setState(current => ({ ...current, dragging }));
+};
 
-const ArrayWidget = compose(
-  withStateHandlers({
+const useReorder = ({ review, setState }) => () => setState({
+  refs: [],
+  review: review + 1,
+  dragging: null,
+});
+
+const ArrayWidget = (props) => {
+  const [state, setState] = useState({
+    refs: [],
     review: 0,
     dragging: null,
-    refs: [],
-  }, {
-    setDragging: (__, { setDragging }) => (dragging) => {
-      if (setDragging) {
-        setDragging(dragging);
-      }
-      return { dragging };
-    },
-    reorder: ({ review }) => () => ({
-      review: review + 1,
-      dragging: null,
-      refs: [],
-    }),
-  }),
-  withProps(getProps),
-  withHandlers({
-    onAdd: onAddHandler,
-    onRemove: onRemoveHandler,
-    onItemRef: onItemRefHandler,
-  }),
-  withHandlers({
-    PropertyComponent: PropertyComponentHandler,
-  }),
-)((props) => {
+  });
+
+  const setDragging = useSetDragging({ ...props, setState });
+  const params = getProps({ ...props, ...state, setDragging });
+  const reorder = useReorder({ ...params, setState });
+
+  const onAdd = useOnAdd(params);
+  const onRemove = useOnRemove({ ...params, reorder });
+  const onItemRef = useOnItemRef(params);
+
   const {
     meta,
     review,
@@ -197,7 +189,6 @@ const ArrayWidget = compose(
     title,
     addLabel,
     addable,
-    onAdd,
     widgets,
     schema,
     uiSchema,
@@ -205,20 +196,21 @@ const ArrayWidget = compose(
     dragging,
     screenType,
     propertyUiSchema,
-    PropertyComponent,
     minimumNumberOfItems,
     AddComponent,
-  } = props;
+  } = params;
+
   const { LabelWidget } = widgets;
   const hasError = isArray(errors) && errors.length > 0 && !errors.hidden;
   const hasTitle = uiSchema['ui:title'] !== false;
   const toggleable = !!uiSchema['ui:toggleable'];
   const missingItems = Math.max(0, minimumNumberOfItems - value.length);
+
   return (
     <React.Fragment>
       {hasTitle || toggleable ? (
         <LabelWidget
-          {...props}
+          {...params}
           toggleable={toggleable}
           hasTitle={hasTitle}
           hasError={hasError}
@@ -229,51 +221,60 @@ const ArrayWidget = compose(
         </LabelWidget>
       ) : null}
       {schema.items.type === 'object' && uiSchema.items['ui:title'] !== false && screenType !== 'xs' ? (
-        <PropertyComponent
-          {...props}
+        <DraggableItem
+          {...params}
+          reorder={reorder}
+          onRemove={onRemove}
+          onItemRef={onItemRef}
           propertyName={`${name}.title`}
           propertyValue={getItem(schema)}
           propertyErrors={{}}
           propertyMeta={getItem(schema) || {}}
-          propertyUiSchema={adjustUiSchema(propertyUiSchema, -1, props)}
+          propertyUiSchema={adjustUiSchema(propertyUiSchema, -1, params)}
           index={-1}
           zIndex={1}
           titleOnly
         />
       ) : null}
       {times(value.length, index => (
-        <PropertyComponent
-          {...props}
+        <DraggableItem
+          {...params}
+          reorder={reorder}
+          onRemove={onRemove}
+          onItemRef={onItemRef}
           key={`${review}.${name}.${index}`}
           propertyName={`${name}.${index}`}
           propertyValue={value[index]}
           propertyMeta={(meta && meta[index]) || getItem(schema) || {}}
           propertyErrors={errors && errors[index]}
-          propertyUiSchema={adjustUiSchema(propertyUiSchema, index, props)}
+          propertyUiSchema={adjustUiSchema(propertyUiSchema, index, params)}
           index={index}
           zIndex={(dragging === index ? value.length : (value.length - index)) + 1}
           noTitle={screenType !== 'xs'}
         />
       ))}
       {times(missingItems, index => (
-        <PropertyComponent
-          {...props}
+        <DraggableItem
+          {...params}
+          reorder={reorder}
+          onRemove={onRemove}
+          onItemRef={onItemRef}
           key={`${review}.${name}.${value.length + index}`}
           propertyName={`${name}.${value.length + index}`}
           propertyValue={getItem(schema)}
           propertyMeta={getItem(schema) || {}}
           propertyErrors={errors && errors[index]}
-          propertyUiSchema={adjustUiSchema(propertyUiSchema, value.length + index, props)}
+          propertyUiSchema={adjustUiSchema(propertyUiSchema, value.length + index, params)}
           index={index}
           zIndex={(dragging === index ? missingItems : (missingItems - index)) + 1}
           noTitle={screenType !== 'xs'}
         />
       ))}
       {addable ? (
-        <AddComponent {...props} onPress={onAdd} addLabel={addLabel} />
+        <AddComponent {...params} onPress={onAdd} addLabel={addLabel} />
       ) : null}
     </React.Fragment>
   );
-});
+};
 
 export default ArrayWidget;

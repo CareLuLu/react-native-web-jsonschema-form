@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { repeat, isNaN } from 'lodash';
-import { withHandlers, compose } from 'recompact';
 import TextInputWidget from './TextInputWidget';
 
 /* eslint no-param-reassign: 0 */
@@ -113,7 +112,7 @@ function maskValue(text, settings) {
   return maskValueStandard(value, settings);
 }
 
-const maskHandler = ({ currency, ...settings }) => (value, direction) => {
+const useMask = ({ currency, ...settings }) => (value, direction) => {
   if (!currency) {
     return value;
   }
@@ -134,7 +133,7 @@ const maskHandler = ({ currency, ...settings }) => (value, direction) => {
   return maskValue(textValue, settings);
 };
 
-const textParserHandler = ({ currency, thousands, decimal }) => (value) => {
+const useTextParser = ({ currency, thousands, decimal }) => (value) => {
   if (!currency) {
     if (value[value.length - 1] === decimal && value.split(decimal).length === 2) {
       return value;
@@ -148,14 +147,19 @@ const textParserHandler = ({ currency, thousands, decimal }) => (value) => {
   return !isNaN(result) ? result : null;
 };
 
-const NumberWidget = compose(
-  withHandlers({
-    mask: maskHandler,
-    textParser: textParserHandler,
-  }),
-)(props => (
-  <TextInputWidget {...props} keyboardType="number-pad" />
-));
+const NumberWidget = (props) => {
+  const mask = useMask(props);
+  const textParser = useTextParser(props);
+
+  return (
+    <TextInputWidget
+      {...props}
+      mask={mask}
+      textParser={textParser}
+      keyboardType="number-pad"
+    />
+  );
+};
 
 NumberWidget.propTypes = {
   currency: PropTypes.bool,

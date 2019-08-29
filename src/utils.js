@@ -26,6 +26,8 @@ const FIELD_TITLE_REGEX = /%title%/g;
 
 /* eslint no-param-reassign: 0 */
 
+const passThrough = () => value => value;
+
 const withDefaults = (uiSchema, base = {}) => ({
   '*': base['*'] || uiSchema['*'] || {}, // Pass default through
   ...(base['*'] || uiSchema['*'] || {}), // Inherit default properties
@@ -89,6 +91,20 @@ const orderedKeys = (schema, uiSchema) => uniq((
 const orderedEach = (schema, uiSchema, iterator) => {
   const keys = orderedKeys(schema, uiSchema);
   each(keys, key => iterator(schema.properties[key], key));
+};
+
+export const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+export const useOnFocus = ({ name, onFocus }) => () => onFocus(name);
+
+export const useOnChange = (props) => {
+  const {
+    name,
+    onChange,
+    parser = passThrough,
+  } = props;
+
+  return value => onChange(parser(props)(value), name);
 };
 
 export const getStructure = (
@@ -266,7 +282,7 @@ export const getValues = (data, schema, key, casting = true, uiSchema = false) =
   return value;
 };
 
-export const getMeta = (data, schema, uiSchema) => getValues(data, schema, null, false, uiSchema);
+export const getMetas = (data, schema, uiSchema) => getValues(data, schema, null, false, uiSchema);
 
 export const getErrors = (data, schema, key) => getValues(data, schema, key, false);
 

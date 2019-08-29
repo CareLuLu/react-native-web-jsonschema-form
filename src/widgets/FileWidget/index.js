@@ -1,31 +1,26 @@
-import React from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 import {
   get,
   each,
   last,
   cloneDeep,
 } from 'lodash';
-import {
-  withState,
-  withProps,
-  withHandlers,
-  compose,
-} from 'recompact';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
 import Dropzone from 'react-native-web-ui-components/Dropzone';
-import View from 'react-native-web-ui-components/View';
 import Row from 'react-native-web-ui-components/Row';
 import {
   withPrefix,
   getTitle,
   isField,
+  toPath,
   FIELD_TITLE,
 } from '../../utils';
 import ArrayWidget from '../ArrayWidget';
 import ObjectWidget from '../ObjectWidget';
 import TextWidget from '../TextWidget';
+import FileArea from './FileArea';
 import OrderHandle from './OrderHandle';
 import RemoveHandle from './RemoveHandle';
 import ProgressHandle from './ProgressHandle';
@@ -89,20 +84,22 @@ const getHref = ({
   return null;
 };
 
-const getProps = ({
-  name,
-  value,
-  schema,
-  uiSchema,
-  multiple,
-  widgets,
-  nameAttribute,
-  pathAttribute,
-  downloadable,
-  downloadBasepath,
-  EditComponent,
-  ProgressComponent,
-}) => {
+const getProps = (props) => {
+  const {
+    name,
+    value,
+    schema,
+    uiSchema,
+    multiple,
+    widgets,
+    nameAttribute,
+    pathAttribute,
+    downloadable,
+    downloadBasepath,
+    EditComponent,
+    ProgressComponent,
+  } = props;
+
   const dropzoneStyle = [];
   let isMultiple = multiple;
   let adjustedNameAttribute;
@@ -282,6 +279,7 @@ const getProps = ({
   }
 
   return {
+    ...props,
     title,
     fileSchema,
     dropzoneStyle,
@@ -292,7 +290,7 @@ const getProps = ({
   };
 };
 
-const onChangeHandler = ({
+const useOnChange = ({
   name,
   value,
   onChange,
@@ -355,7 +353,7 @@ const onChangeHandler = ({
   }
 };
 
-const onAcceptedHanlder = ({
+const useOnAccepted = ({
   name,
   meta,
   value,
@@ -432,230 +430,227 @@ const setMeta = (meta, params) => {
   each(params, (v, k) => { meta[`ui:${k}`] = v; }); // eslint-disable-line
 };
 
-const onMetaHandler = ({
+const useOnMeta = ({
   name,
   meta,
+  metas,
   value,
+  values,
   schema,
   fileSchema,
+  onChange,
   nameAttribute,
-  originalOnChange,
-}) => (fileId, params) => {
-  let update;
-  let metaItem;
-  let metaItemIndex;
-  const nextMeta = meta;
-  if (schema.type === 'array' && fileSchema.type === 'string') {
-    for (let i = 0; i < nextMeta.length; i += 1) {
-      if (nextMeta[i]['ui:fileId'] === fileId) {
-        metaItem = nextMeta[i];
-        metaItemIndex = i;
+}) => {
+  const anchor = useRef();
+
+  anchor.current = (fileId, params) => {
+    let update;
+    let metaItem;
+    let metaItemIndex;
+    const nextMeta = get(metas, toPath(name), meta);
+    const nextValue = get(values, toPath(name), value);
+
+    if (schema.type === 'array' && fileSchema.type === 'string') {
+      for (let i = 0; i < nextMeta.length; i += 1) {
+        if (nextMeta[i]['ui:fileId'] === fileId) {
+          metaItem = nextMeta[i];
+          metaItemIndex = i;
+        }
       }
-    }
-    if (metaItem) {
-      setMeta(metaItem, params);
-      update = [`${name}.${metaItemIndex}`];
-    }
-  } else if (schema.type === 'array' && fileSchema.type === 'object') {
-    for (let i = 0; i < nextMeta.length; i += 1) {
-      if (nextMeta[i][nameAttribute] && nextMeta[i][nameAttribute]['ui:fileId'] === fileId) {
-        metaItem = nextMeta[i];
-        metaItemIndex = i;
+      if (metaItem) {
+        setMeta(metaItem, params);
+        update = [`${name}.${metaItemIndex}`];
       }
+    } else if (schema.type === 'array' && fileSchema.type === 'object') {
+      for (let i = 0; i < nextMeta.length; i += 1) {
+        if (nextMeta[i][nameAttribute] && nextMeta[i][nameAttribute]['ui:fileId'] === fileId) {
+          metaItem = nextMeta[i];
+          metaItemIndex = i;
+        }
+      }
+      if (metaItem) {
+        setMeta(metaItem[nameAttribute], params);
+        update = [`${name}.${metaItemIndex}.${nameAttribute}`];
+      }
+    } else if (fileSchema.type === 'string' && nextMeta['ui:fileId'] === fileId) {
+      setMeta(nextMeta, params);
+      update = [name];
+    } else if (fileSchema.type === 'object' && nextMeta[nameAttribute] && nextMeta[nameAttribute]['ui:fileId'] === fileId) {
+      setMeta(nextMeta[nameAttribute], params);
+      update = [`${name}.${nameAttribute}`];
     }
-    if (metaItem) {
-      setMeta(metaItem[nameAttribute], params);
-      update = [`${name}.${metaItemIndex}.${nameAttribute}`];
+    if (update) {
+      onChange(nextValue, name, {
+        nextMeta,
+        update,
+      });
     }
-  } else if (fileSchema.type === 'string' && nextMeta['ui:fileId'] === fileId) {
-    setMeta(nextMeta, params);
-    update = [name];
-  } else if (fileSchema.type === 'object' && nextMeta[nameAttribute] && nextMeta[nameAttribute]['ui:fileId'] === fileId) {
-    setMeta(nextMeta[nameAttribute], params);
-    update = [`${name}.${nameAttribute}`];
-  }
-  if (update) {
-    originalOnChange(value, name, {
-      nextMeta,
-      update,
-    });
-  }
+  };
+
+  return anchor;
 };
 
-const onDropHandler = ({
+const useOnDrop = ({
   onDrop,
   onMeta,
   onAccepted,
   fileSchema,
   nameAttribute,
   pathAttribute,
-}) => (files) => {
-  if (files.length) {
-    const nextFiles = files.map((file) => {
-      id += 1;
-      const fileId = id;
-      return {
-        id,
-        file,
-        value: fileSchema.type === 'string' ? (file.uri || file.name) : ({
-          [nameAttribute]: file.name,
-          [pathAttribute]: file.uri || file.name,
-        }),
-        setProgress: progress => onMeta(fileId, { progress }),
-        setError: error => onMeta(fileId, { error }),
-      };
-    });
-    onDrop(nextFiles, onAccepted);
+}) => {
+  const anchor = useRef();
+  anchor.current = (files) => {
+    if (files.length) {
+      const nextFiles = files.map((file) => {
+        id += 1;
+        const fileId = id;
+        return {
+          id,
+          file,
+          value: fileSchema.type === 'string' ? (file.uri || file.name) : ({
+            [nameAttribute]: file.name,
+            [pathAttribute]: file.uri || file.name,
+          }),
+          setProgress: progress => onMeta.current(fileId, { progress }),
+          setError: error => onMeta.current(fileId, { error }),
+        };
+      });
+      onDrop(nextFiles, onAccepted);
+    }
+  };
+  return anchor;
+};
+
+const useOnAreaClick = ({ dragging }) => (event) => {
+  if (dragging || event.isDefaultPrevented()) {
+    event.stopPropagation();
   }
 };
 
-const Wrapper = ({ onAreaClick, style, children }) => {
-  if (Platform.OS === 'web') {
-    return React.createElement('div', {
-      style: StyleSheet.flatten(style),
-      onClick: onAreaClick,
-    }, children);
+const useOnClick = ({ propertySchema }) => (event) => {
+  const fn = propertySchema.type === 'array' ? 'preventDefault' : 'stopPropagation';
+  if (event.nativeEvent.target.tagName === 'INPUT') {
+    event[fn]();
   }
+  if (isField(event.nativeEvent.target, handleRegex)) {
+    event[fn]();
+  }
+  if (event.nativeEvent.target.tagName === 'A') {
+    event.stopPropagation();
+  }
+};
+
+const FileWidget = (props) => {
+  const [dragging, setDragging] = useState(null);
+  const params = getProps({ ...props, dragging, setDragging });
+
+  const {
+    title,
+    accept,
+    cameraText,
+    albumText,
+    fileText,
+    cancelText,
+    propertySchema,
+    propertyUiSchema,
+    uiSchema,
+    LabelWidget,
+    hasError,
+    style,
+    auto,
+    dropzoneStyle,
+    ...nextProps
+  } = params;
+
+  const onAreaClick = useOnAreaClick(params);
+  const onClick = useOnClick(params);
+  const onChange = useOnChange(params);
+  const onMeta = useOnMeta(params);
+  const onAccepted = useOnAccepted({ ...params, onChange });
+
+  const onDropAnchor = useOnDrop({ ...params, onMeta, onAccepted });
+  const onDrop = useCallback(
+    (...args) => onDropAnchor.current(...args),
+    [onDropAnchor],
+  );
+
   return (
-    <View style={style}>
-      {children}
-    </View>
+    <React.Fragment>
+      {(title !== false || uiSchema['ui:toggleable']) && propertySchema.type === 'string' ? (
+        <LabelWidget
+          {...nextProps}
+          onChange={onChange}
+          toggleable={!!uiSchema['ui:toggleable']}
+          hasTitle={title !== false}
+          hasError={hasError}
+          auto={propertyUiSchema['ui:inline']}
+          {...propertyUiSchema['ui:titleProps']}
+        >
+          {title}
+        </LabelWidget>
+      ) : null}
+      <Dropzone
+        onDrop={onDrop}
+        accept={accept}
+        disabled={!!uiSchema['ui:disabled']}
+        cameraText={cameraText}
+        albumText={albumText}
+        fileText={fileText}
+        cancelText={cancelText}
+        style={[
+          styles.defaults,
+          auto ? styles.auto : styles.fullWidth,
+          dropzoneStyle,
+          style,
+        ]}
+      >
+        <Row>
+          {propertySchema.type === 'array' ? (
+            <FileArea onAreaClick={onAreaClick} style={styles.containerMultiple}>
+              <ArrayWidget
+                {...nextProps}
+                auto={false}
+                hasError={hasError}
+                schema={propertySchema}
+                uiSchema={propertyUiSchema}
+                style={styles.item}
+                onClick={onClick}
+                onChange={onChange}
+              />
+            </FileArea>
+          ) : null}
+          {propertySchema.type === 'object' ? (
+            <FileArea onAreaClick={onClick} style={styles.containerSingle}>
+              <ObjectWidget
+                {...nextProps}
+                auto={false}
+                hasError={hasError}
+                schema={propertySchema}
+                uiSchema={propertyUiSchema}
+                style={styles.item}
+                onChange={onChange}
+              />
+            </FileArea>
+          ) : null}
+          {propertySchema.type === 'string' && nextProps.value ? (
+            <FileArea onAreaClick={onClick} style={styles.containerSingle}>
+              <TextWidget
+                {...nextProps}
+                {...propertyUiSchema['ui:widgetProps']}
+                auto={false}
+                hasError={hasError}
+                schema={propertySchema}
+                uiSchema={propertyUiSchema}
+                style={styles.item}
+                onChange={onChange}
+              />
+            </FileArea>
+          ) : null}
+        </Row>
+      </Dropzone>
+    </React.Fragment>
   );
 };
-
-Wrapper.propTypes = {
-  onAreaClick: PropTypes.func.isRequired,
-  children: PropTypes.node,
-  style: StylePropType,
-};
-
-Wrapper.defaultProps = {
-  children: null,
-  style: null,
-};
-
-const FileWidget = compose(
-  withState('dragging', 'setDragging', null),
-  withProps(getProps),
-  withHandlers({
-    onAreaClick: ({ dragging }) => (event) => {
-      if (dragging || event.isDefaultPrevented()) {
-        event.stopPropagation();
-      }
-    },
-    onClick: ({ propertySchema }) => (event) => {
-      const fn = propertySchema.type === 'array' ? 'preventDefault' : 'stopPropagation';
-      if (event.nativeEvent.target.tagName === 'INPUT') {
-        event[fn]();
-      }
-      if (isField(event.nativeEvent.target, handleRegex)) {
-        event[fn]();
-      }
-      if (event.nativeEvent.target.tagName === 'A') {
-        event.stopPropagation();
-      }
-    },
-    onChange: onChangeHandler,
-    originalOnChange: ({ onChange }) => (...args) => onChange(...args),
-  }),
-  withHandlers({
-    onAccepted: onAcceptedHanlder,
-    onMeta: onMetaHandler,
-  }),
-  withHandlers({
-    onDrop: onDropHandler,
-  }),
-)(({
-  title,
-  onDrop,
-  accept,
-  cameraText,
-  albumText,
-  fileText,
-  cancelText,
-  propertySchema,
-  propertyUiSchema,
-  uiSchema,
-  LabelWidget,
-  hasError,
-  style,
-  auto,
-  onClick,
-  onAreaClick,
-  dropzoneStyle,
-  ...props
-}) => (
-  <React.Fragment>
-    {(title !== false || uiSchema['ui:toggleable']) && propertySchema.type === 'string' ? (
-      <LabelWidget
-        {...props}
-        toggleable={!!uiSchema['ui:toggleable']}
-        hasTitle={title !== false}
-        hasError={hasError}
-        auto={propertyUiSchema['ui:inline']}
-        {...propertyUiSchema['ui:titleProps']}
-      >
-        {title}
-      </LabelWidget>
-    ) : null}
-    <Dropzone
-      onDrop={onDrop}
-      accept={accept}
-      disabled={!!uiSchema['ui:disabled']}
-      cameraText={cameraText}
-      albumText={albumText}
-      fileText={fileText}
-      cancelText={cancelText}
-      style={[
-        styles.defaults,
-        auto ? styles.auto : styles.fullWidth,
-        dropzoneStyle,
-        style,
-      ]}
-    >
-      <Row>
-        {propertySchema.type === 'array' ? (
-          <Wrapper onAreaClick={onAreaClick} style={styles.containerMultiple}>
-            <ArrayWidget
-              {...props}
-              auto={false}
-              hasError={hasError}
-              schema={propertySchema}
-              uiSchema={propertyUiSchema}
-              style={styles.item}
-              onClick={onClick}
-            />
-          </Wrapper>
-        ) : null}
-        {propertySchema.type === 'object' ? (
-          <Wrapper onAreaClick={onClick} style={styles.containerSingle}>
-            <ObjectWidget
-              {...props}
-              auto={false}
-              hasError={hasError}
-              schema={propertySchema}
-              uiSchema={propertyUiSchema}
-              style={styles.item}
-            />
-          </Wrapper>
-        ) : null}
-        {propertySchema.type === 'string' && props.value ? (
-          <Wrapper onAreaClick={onClick} style={styles.containerSingle}>
-            <TextWidget
-              {...props}
-              {...propertyUiSchema['ui:widgetProps']}
-              auto={false}
-              hasError={hasError}
-              schema={propertySchema}
-              uiSchema={propertyUiSchema}
-              style={styles.item}
-            />
-          </Wrapper>
-        ) : null}
-      </Row>
-    </Dropzone>
-  </React.Fragment>
-));
 
 FileWidget.propTypes = {
   name: PropTypes.string.isRequired,

@@ -1,38 +1,36 @@
 import React from 'react';
-import { StyleSheet, Platform } from 'react-native';
 import PropTypes from 'prop-types';
+import { StyleSheet, Platform } from 'react-native';
 import {
-  get,
   set,
-  noop,
+  get,
   each,
+  noop,
   cloneDeep,
   isString,
   isArray,
   isError,
   isPlainObject,
 } from 'lodash';
-import isEqual from 'fast-deep-equal';
 import Row from 'react-native-web-ui-components/Row';
 import { withTheme } from 'react-native-web-ui-components/Theme';
-import FormEvent from './FormEvent';
-import DefaultCancelButton from './CancelButton';
-import DefaultSubmitButton from './SubmitButton';
-import fields from './fields';
-import defaultWidgets from './widgets';
 import {
-  merge,
-  expand,
   toPath,
+  expand,
   isField,
-  normalized,
-  getMeta,
+  getMetas,
   getValues,
   getErrors,
   getRequired,
   getStructure,
   getExceptions,
+  normalized,
 } from './utils';
+import fields from './fields';
+import defaultWidgets from './widgets';
+import FormEvent from './FormEvent';
+import DefaultCancelButton from './CancelButton';
+import DefaultSubmitButton from './SubmitButton';
 
 export {
   FIELD_KEY,
@@ -40,6 +38,13 @@ export {
   FIELD_VALUE,
   FIELD_TITLE,
 } from './utils';
+
+const emptyObject = {};
+
+const emptySchema = {
+  type: 'object',
+  properties: [],
+};
 
 const styles = StyleSheet.create({
   form: { zIndex: 1 },
@@ -75,14 +80,14 @@ const addToObject = obj => (v, k) => Object.assign(obj, { [k]: v });
 
 const addToArray = arr => v => arr.push(v);
 
-class Form extends React.Component {
+class JsonSchemaForm extends React.Component {
   static propTypes = {
     name: PropTypes.string,
-    formData: PropTypes.shape(),
     schema: PropTypes.shape(),
     uiSchema: PropTypes.shape(),
     metaSchema: PropTypes.shape(),
     errorSchema: PropTypes.shape(),
+    formData: PropTypes.shape(),
     children: PropTypes.node,
     onRef: PropTypes.func,
     onFocus: PropTypes.func,
@@ -100,21 +105,18 @@ class Form extends React.Component {
     scroller: PropTypes.shape(),
     widgets: PropTypes.shape(),
     filterEmptyValues: PropTypes.bool,
-    ignoreFormDataUpdates: PropTypes.bool,
     loseFocusOnOutsideClick: PropTypes.bool,
+    ignoreFormDataUpdates: PropTypes.bool,
     insideClickRegex: PropTypes.instanceOf(RegExp),
   };
 
   static defaultProps = {
     name: null,
-    formData: {},
-    schema: {
-      type: 'object',
-      properties: [],
-    },
-    uiSchema: {},
+    formData: emptyObject,
+    schema: emptySchema,
+    uiSchema: emptyObject,
     metaSchema: undefined,
-    errorSchema: {},
+    errorSchema: emptyObject,
     children: null,
     onRef: noop,
     onFocus: noop,
@@ -130,126 +132,124 @@ class Form extends React.Component {
     SubmitButton: DefaultSubmitButton,
     scroller: null,
     focus: '',
-    widgets: {},
+    widgets: emptyObject,
     filterEmptyValues: false,
-    ignoreFormDataUpdates: false,
     loseFocusOnOutsideClick: true,
+    ignoreFormDataUpdates: false,
     insideClickRegex: undefined,
   };
 
   static getDerivedStateFromProps(nextProps, prevState) {
-    let state = null;
+    const state = {
+      clearCache: false,
+    };
+    let clear = false;
+    let {
+      focus,
+      metas,
+      values,
+      errors,
+      schema,
+      uiSchema,
+    } = prevState;
 
-    // If schema or uiSchema changes, we recalculate everything.
-    if (
-      !isEqual(nextProps.schema, prevState.schemaProp)
-      || !isEqual(nextProps.uiSchema, prevState.uiSchemaProp)
-    ) {
-      const { schema, uiSchema } = getStructure(nextProps.schema, nextProps.uiSchema);
-      const formDataProp = getValues(nextProps.formData, schema);
-      const values = merge(prevState.values, formDataProp);
-      state = {
-        schema,
-        uiSchema,
-        formDataProp,
-        clearCache: true,
-        event: 'rebuild:schema',
-        required: getRequired(schema),
-        schemaProp: nextProps.schema,
-        uiSchemaProp: nextProps.uiSchema,
-        errorSchemaProp: nextProps.errorSchema,
-        metaSchemaProp: nextProps.metaSchema,
-        values: cloneDeep(values),
-        errors: cloneDeep(getErrors(nextProps.errorSchema, schema)),
-        meta: cloneDeep(getMeta(nextProps.metaSchema || cloneDeep(values), schema, uiSchema)),
-      };
-    } else {
-      const {
-        schema,
-        uiSchema,
-        values,
-        formDataProp,
-        errorSchemaProp,
-        metaSchemaProp,
-      } = prevState;
-
-      // If the relevant attributes of formData changes, we recalculate values.
-      const nextFormDataProp = getValues(nextProps.formData, schema);
-      if (!nextProps.ignoreFormDataUpdates && !isEqual(formDataProp, nextFormDataProp)) {
-        state = {
-          update: 'all',
-          event: 'rebuild:form-data',
-          values: cloneDeep(merge(values, nextFormDataProp)),
-          formDataProp: nextFormDataProp,
-        };
-      }
-
-      // If the errorSchema changes, we reset the errorSchema.
-      if (!isEqual(nextProps.errorSchema, errorSchemaProp)) {
-        state = Object.assign(state || {}, {
-          event: 'rebuild:errors',
-          errorSchemaProp: nextProps.errorSchema,
-          errors: cloneDeep(getErrors(nextProps.errorSchema, schema)),
-        });
-      }
-
-      // If the metaSchema changes, we reset the metaSchema.
-      if (!isEqual(nextProps.metaSchema, metaSchemaProp)) {
-        state = Object.assign(state || {}, {
-          event: 'rebuild:meta',
-          metaSchemaProp: nextProps.metaSchema,
-          meta: cloneDeep(getMeta(nextProps.metaSchema || cloneDeep(values), schema, uiSchema)),
-        });
-      }
+    // If the schema or uiSchema is different, we recalculate everything
+    const { schemaProp, uiSchemaProp } = prevState;
+    if (nextProps.schema !== schemaProp || nextProps.uiSchema !== uiSchemaProp) {
+      clear = true;
+      const structure = getStructure(nextProps.schema, nextProps.uiSchema);
+      schema = structure.schema;
+      uiSchema = structure.uiSchema;
+      state.schema = schema;
+      state.uiSchema = uiSchema;
+      state.update = 'all';
+      state.clearCache = true;
+      state.schemaProp = nextProps.schema;
+      state.uiSchemaProp = nextProps.uiSchema;
+      state.required = getRequired(schema);
     }
+
+    // Check for formData updates
+    if (clear || nextProps.formData !== prevState.formDataProp) {
+      values = getValues(cloneDeep(nextProps.formData), schema);
+      state.values = values;
+      state.update = 'all';
+      state.formDataProp = nextProps.formData;
+    }
+
+    // Check for errorSchema updates
+    if (clear || nextProps.errorSchema !== prevState.errorSchemaProp) {
+      errors = getErrors(cloneDeep(nextProps.errorSchema), schema);
+      state.errors = errors;
+      state.update = 'all';
+      state.errorSchemaProp = nextProps.errorSchema;
+    }
+
+    // Check for metaSchema updates
+    if (clear || nextProps.metaSchema !== prevState.metaSchemaProp) {
+      metas = getMetas(cloneDeep(nextProps.metaSchema || values), schema, uiSchema);
+      state.metas = metas;
+      state.update = 'all';
+      state.metaSchemaProp = nextProps.metaSchema;
+    }
+
+    // Check for focus updates
     if (nextProps.focus !== prevState.focusProp) {
-      state = state || {};
-      state.focus = nextProps.focus;
+      focus = nextProps.focus;
+      state.focus = focus;
       state.focusProp = nextProps.focus;
+      if (state.update !== 'all') {
+        state.update = expand([state.focus, prevState.focus]);
+      }
     }
     return state;
   }
 
   constructor(props) {
     super(props);
+
     const {
       name,
       onRef,
+      widgets,
+      focus,
+      formData,
       schema,
       uiSchema,
-      formData,
-      widgets,
-      errorSchema,
       metaSchema,
-      focus,
+      errorSchema,
       insideClickRegex,
     } = props;
+
     this.id = `Form__${name || Math.random().toString(36).substr(2, 9)}`;
     this.fieldRegex = insideClickRegex || new RegExp(`(${this.id}-field|react-datepicker)`);
     this.mountSteps = [];
-    this.forms = [];
     this.widgets = Object.assign({}, defaultWidgets, widgets);
 
     const structure = getStructure(schema, uiSchema);
-    const formDataProp = getValues(formData, structure.schema);
+    const values = getValues(cloneDeep(formData), structure.schema);
+    const errors = getErrors(cloneDeep(errorSchema), structure.schema);
+    const metas = getMetas(cloneDeep(metaSchema || values), structure.schema, structure.uiSchema);
+    const required = getRequired(structure.schema);
+
     this.state = {
       focus,
-      formDataProp,
-      focusProp: focus,
-      update: {},
-      event: 'build',
-      clearCache: false,
-      required: getRequired(structure.schema),
+      values,
+      errors,
+      metas,
+      required,
       schema: structure.schema,
       uiSchema: structure.uiSchema,
+      focusProp: focus,
+      formDataProp: formData,
       schemaProp: schema,
       uiSchemaProp: uiSchema,
       errorSchemaProp: errorSchema,
       metaSchemaProp: metaSchema,
-      values: cloneDeep(formDataProp),
-      errors: cloneDeep(getErrors(errorSchema, structure.schema)),
-      meta: cloneDeep(getMeta(metaSchema || formDataProp, structure.schema, structure.uiSchema)),
+      update: {},
+      clearCache: false,
     };
+
     onRef(this);
   }
 
@@ -268,7 +268,7 @@ class Form extends React.Component {
     }
   }
 
-  onMount = (handler) => {
+  onMount(handler) {
     if (handler) {
       this.mountSteps.push(handler);
     }
@@ -278,7 +278,7 @@ class Form extends React.Component {
         fn.call(this);
       }
     }
-  };
+  }
 
   onFocus = (name = '', update) => {
     const { focus, values } = this.state;
@@ -296,7 +296,6 @@ class Form extends React.Component {
             scroller.setNativeProps({ scrollEnabled: true });
           }
           this.onMount(() => this.setState({
-            event: event.name,
             focus: event.params.name,
             update: expand(event.params.update),
             values: { ...event.params.values },
@@ -316,7 +315,7 @@ class Form extends React.Component {
     } = params;
     const {
       focus,
-      meta,
+      metas,
       values,
       errors,
     } = this.state;
@@ -327,10 +326,10 @@ class Form extends React.Component {
     }
     const event = new FormEvent('change', {
       name,
-      meta,
       value,
       silent,
       values,
+      metas,
       nextMeta,
       nextErrors,
       focus: nextFocus,
@@ -342,7 +341,7 @@ class Form extends React.Component {
         const { path } = event.params;
         set(event.params.values, path, event.params.value);
         if (event.params.nextMeta !== false) {
-          set(meta, path, event.params.nextMeta);
+          set(metas, path, event.params.nextMeta);
         }
         if (event.params.nextErrors !== false) {
           set(errors, path, event.params.nextErrors);
@@ -356,9 +355,8 @@ class Form extends React.Component {
           }
         }
         this.onMount(() => this.setState({
-          meta: { ...meta },
+          metas: { ...metas },
           errors: { ...errors },
-          event: event.name,
           values: { ...event.params.values },
           focus: event.params.focus,
           update: expand(event.params.update),
@@ -375,9 +373,9 @@ class Form extends React.Component {
   };
 
   onSubmit = () => {
-    const { meta, values } = this.state;
+    const { metas, values } = this.state;
     const { onSubmit, filterEmptyValues } = this.props;
-    let nextValues = this.filterDisabled(values, meta);
+    let nextValues = this.filterDisabled(values, metas);
     if (filterEmptyValues) {
       nextValues = this.filterEmpty(nextValues);
     }
@@ -404,7 +402,6 @@ class Form extends React.Component {
     this.run(onSuccess(event), () => {
       if (!event.isDefaultPrevented()) {
         this.onMount(() => this.setState({
-          event: event.name,
           errors: getErrors({}, schema),
           values: event.params.values,
           update: expand(event.params.update),
@@ -430,7 +427,6 @@ class Form extends React.Component {
     this.run(onError(event), () => {
       if (!event.isDefaultPrevented()) {
         this.onMount(() => this.setState({
-          event: event.name,
           errors: event.params.errors,
           update: expand(event.params.update),
         }));
@@ -488,19 +484,19 @@ class Form extends React.Component {
     return filteredValues;
   }
 
-  filterDisabled(values, meta, path = '', type = 'object') {
+  filterDisabled(values, metas, path = '', type = 'object') {
     const self = this;
     const filteredValues = type === 'object' ? {} : [];
     const add = type === 'object' ? addToObject(filteredValues) : addToArray(filteredValues);
     each(values, (v, k) => {
-      const disabled = !!(meta && meta[k] && meta[k]['ui:disabled']);
+      const disabled = !!(metas && metas[k] && metas[k]['ui:disabled']);
       if (!disabled) {
         const name = path ? `${path}.${k}` : k;
         let value = v;
         if (isArray(v)) {
-          value = self.filterDisabled(v, (meta && meta[k]) || [], name, 'array');
+          value = self.filterDisabled(v, (metas && metas[k]) || [], name, 'array');
         } else if (isPlainObject(v)) {
-          value = self.filterDisabled(v, (meta && meta[k]) || {}, name, 'object');
+          value = self.filterDisabled(v, (metas && metas[k]) || {}, name, 'object');
         }
         add(value, k);
       }
@@ -508,35 +504,12 @@ class Form extends React.Component {
     return filteredValues;
   }
 
-  reRender() {
-    const nextProps = this.props;
-    const prevState = this.state;
-    const { schema, uiSchema } = getStructure(nextProps.schema, nextProps.uiSchema);
-    const formDataProp = getValues(nextProps.formData, schema);
-    const values = merge(prevState.values, formDataProp);
-    this.onMount(() => this.setState({
-      schema,
-      uiSchema,
-      formDataProp,
-      clearCache: true,
-      event: 'rebuild:rerender',
-      required: getRequired(schema),
-      schemaProp: nextProps.schema,
-      uiSchemaProp: nextProps.uiSchema,
-      errorSchemaProp: nextProps.errorSchema,
-      metaSchemaProp: nextProps.metaSchema,
-      values: cloneDeep(values),
-      errors: cloneDeep(getErrors(nextProps.errorSchema, schema)),
-      meta: cloneDeep(getMeta(nextProps.metaSchema || values, schema, uiSchema)),
-    }));
-  }
-
   render() {
     const {
       event,
       schema,
       uiSchema,
-      meta,
+      metas,
       values,
       errors,
       focus,
@@ -544,6 +517,7 @@ class Form extends React.Component {
       required,
       clearCache,
     } = this.state;
+
     const {
       children,
       cancelButton,
@@ -553,17 +527,8 @@ class Form extends React.Component {
       buttonPosition,
     } = this.props;
 
-    if (clearCache || update === 'all') {
-      const nextState = {};
-      if (clearCache) {
-        nextState.clearCache = false;
-      }
-      if (update === 'all') {
-        nextState.update = {};
-      }
-      setTimeout(() => this.onMount(() => this.setState(nextState)));
-    }
     const { ObjectField } = fields;
+
     return (
       <React.Fragment>
         <Row className={`Form ${this.id}`} style={styles.form}>
@@ -574,7 +539,8 @@ class Form extends React.Component {
             event={event}
             schema={schema}
             uiSchema={uiSchema}
-            meta={meta}
+            meta={metas}
+            metas={metas}
             value={values}
             values={values}
             errors={errors}
@@ -610,4 +576,4 @@ class Form extends React.Component {
   }
 }
 
-export default withTheme('JsonSchemaForm')(Form);
+export default withTheme('JsonSchemaForm')(JsonSchemaForm);

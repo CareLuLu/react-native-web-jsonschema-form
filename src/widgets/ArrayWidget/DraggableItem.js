@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
-import { get } from 'lodash';
-import { withProps, withHandlers, compose } from 'recompact';
+import { get, omit } from 'lodash';
 import RNDraggable from 'react-native-web-ui-components/Draggable';
+import StylePropType from 'react-native-web-ui-components/StylePropType';
 import Item from './Item';
 
 const styles = StyleSheet.create({
@@ -42,9 +42,9 @@ const findIndex = async (index, position, i, j, refs) => {
   return findIndex(index, position, mid + 1, j, refs);
 };
 
-const onDragStartHandler = ({ index, setDragging }) => () => setDragging(index);
+const useOnDragStart = ({ index, setDragging }) => () => setDragging(index);
 
-const onDragEndHandler = ({
+const useOnDragEnd = ({
   name,
   value,
   index,
@@ -97,47 +97,50 @@ const onDragEndHandler = ({
   }
 };
 
-const onRemovePressHandler = ({ index, onRemove }) => () => onRemove(index);
+const useOnRemovePress = ({ index, onRemove }) => () => onRemove(index);
 
-const onItemRefHandler = ({ index, onItemRef }) => ref => onItemRef(ref, index);
+const useOnItemRef = ({ index, onItemRef }) => ref => onItemRef(ref, index);
 
-const ItemComponentHandler = ({ style, ...props }) => ({ panHandlers }) => ( // eslint-disable-line
-  <Item {...props} itemStyle={style} panHandlers={panHandlers} />
-);
+const DraggableItem = (props) => {
+  const {
+    name,
+    scroller,
+    orderable,
+    titleOnly,
+    uiSchema,
+    style,
+  } = props;
 
-const DraggableItem = compose(
-  withProps(({ name }) => ({ handle: `${name.replace(/\./g, '_')}__handle` })),
-  withHandlers({
-    onDragStart: onDragStartHandler,
-    onDragEnd: onDragEndHandler,
-    onRemovePress: onRemovePressHandler,
-    onItemRef: onItemRefHandler,
-  }),
-  withHandlers({
-    ItemComponent: ItemComponentHandler,
-  }),
-)(({
-  handle,
-  scroller,
-  orderable,
-  onDragStart,
-  onDragEnd,
-  ItemComponent,
-  titleOnly,
-  uiSchema,
-}) => (
-  <RNDraggable
-    handle={handle}
-    scroller={scroller}
-    style={[styles.container, get(uiSchema, ['ui:widgetProps', 'style'], null)]}
-    disabled={!orderable || titleOnly}
-    onDragStart={onDragStart}
-    onDragEnd={onDragEnd}
-    axis="y"
-  >
-    {ItemComponent}
-  </RNDraggable>
-));
+  const handle = `${name.replace(/\./g, '_')}__handle`;
+
+  const onDragStart = useOnDragStart(props);
+  const onDragEnd = useOnDragEnd(props);
+  const onRemovePress = useOnRemovePress(props);
+  const onItemRef = useOnItemRef(props);
+
+  return (
+    <RNDraggable
+      handle={handle}
+      scroller={scroller}
+      style={[styles.container, get(uiSchema, ['ui:widgetProps', 'style'], null)]}
+      disabled={!orderable || titleOnly}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      axis="y"
+    >
+      {({ panHandlers }) => (
+        <Item
+          {...omit(props, 'style')}
+          handle={handle}
+          itemStyle={style}
+          panHandlers={panHandlers}
+          onItemRef={onItemRef}
+          onRemovePress={onRemovePress}
+        />
+      )}
+    </RNDraggable>
+  );
+};
 
 DraggableItem.propTypes = {
   name: PropTypes.string.isRequired,
@@ -148,11 +151,13 @@ DraggableItem.propTypes = {
   orderable: PropTypes.bool.isRequired,
   titleOnly: PropTypes.bool,
   scroller: PropTypes.shape(),
+  style: StylePropType,
 };
 
 DraggableItem.defaultProps = {
   titleOnly: undefined,
   scroller: undefined,
+  style: {},
 };
 
 export default DraggableItem;
