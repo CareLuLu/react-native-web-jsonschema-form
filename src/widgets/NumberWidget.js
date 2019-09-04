@@ -1,5 +1,7 @@
 import React from 'react';
-import TextWidget from './TextWidget';
+import PropTypes from 'prop-types';
+import { repeat, isNaN } from 'lodash';
+import TextInputWidget from './TextInputWidget';
 
 /* eslint no-param-reassign: 0 */
 const INITIAL_ZEROS = /^0*/g;
@@ -110,7 +112,70 @@ function maskValue(text, settings) {
   return maskValueStandard(value, settings);
 }
 
-const mask = settings => value => maskValue(value, Object.assign({
+const useMask = ({ currency, ...settings }) => (value, direction) => {
+  if (!currency) {
+    return value;
+  }
+  let textValue = value;
+  if (direction === 'in') {
+    const { decimal, precision } = settings;
+    if (precision > 0) {
+      const parts = textValue.split(decimal);
+      if (parts.length < 2) {
+        parts.push('0');
+      }
+      if (parts[1].length < precision) {
+        parts[1] += repeat('0', precision - parts[1].length);
+        textValue = parts.join(decimal);
+      }
+    }
+  }
+  return maskValue(textValue, settings);
+};
+
+const useTextParser = ({ currency, thousands, decimal }) => (value) => {
+  if (!currency) {
+    if (value[value.length - 1] === decimal && value.split(decimal).length === 2) {
+      return value;
+    }
+    const result = parseFloat(value);
+    return !isNaN(result) ? result : null;
+  }
+  const thousandsRegex = new RegExp(`\\${thousands}`, 'g');
+  const decimalRegex = new RegExp(`\\${decimal}`);
+  const result = parseFloat(value.replace(thousandsRegex, '').replace(decimalRegex, '.'));
+  return !isNaN(result) ? result : null;
+};
+
+const NumberWidget = (props) => {
+  const mask = useMask(props);
+  const textParser = useTextParser(props);
+
+  return (
+    <TextInputWidget
+      {...props}
+      mask={mask}
+      textParser={textParser}
+      keyboardType="number-pad"
+    />
+  );
+};
+
+NumberWidget.propTypes = {
+  currency: PropTypes.bool,
+  prefix: PropTypes.string,
+  suffix: PropTypes.string,
+  affixesStay: PropTypes.bool,
+  thousands: PropTypes.string,
+  decimal: PropTypes.string,
+  precision: PropTypes.number,
+  allowNegative: PropTypes.bool,
+  allowEmpty: PropTypes.bool,
+  reverse: PropTypes.bool,
+};
+
+NumberWidget.defaultProps = {
+  currency: false,
   prefix: '',
   suffix: '',
   affixesStay: true,
@@ -119,10 +184,7 @@ const mask = settings => value => maskValue(value, Object.assign({
   precision: 2,
   allowNegative: false,
   allowEmpty: false,
-}, settings));
-
-const NumberWidget = props => (
-  <TextWidget {...props} keyboardType="number-pad" mask={mask(props)} />
-);
+  reverse: false,
+};
 
 export default NumberWidget;

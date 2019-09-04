@@ -1,8 +1,17 @@
 import React from 'react';
-import TextWidget from './TextWidget';
+import PropTypes from 'prop-types';
+import TextInputWidget from './TextInputWidget';
 
-const ZipWidget = props => (
-  <TextWidget {...props} keyboardType="number-pad" mask="99999" />
-);
+const ZipWidget = props => <TextInputWidget {...props} />;
+
+ZipWidget.propTypes = {
+  mask: PropTypes.string,
+  keyboardType: PropTypes.string,
+};
+
+ZipWidget.defaultProps = {
+  mask: '99999',
+  keyboardType: 'number-pad',
+};
 
 export default ZipWidget;

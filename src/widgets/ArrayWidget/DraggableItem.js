@@ -1,101 +1,185 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
-import { set } from 'lodash';
-import { withProps, withHandlers, compose } from 'recompact';
-import { Draggable as RNDraggable } from 'react-native-web-ui-components';
-import Item from './Item';
+import { get, omit } from 'lodash';
+import RNDraggable from 'react-native-web-ui-components/Draggable';
+import StylePropType from 'react-native-web-ui-components/StylePropType';
+import getItemPosition from './getItemPosition';
 
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
 });
 
-const onDragStartHandler = ({ index, setDragging }) => () => setDragging(index);
+const findIndex = async (index, position, pos, i, j, refs, positions) => {
+  const mid = Math.floor((i + j) / 2);
 
-const onDragEndHandler = ({
-  list,
-  name,
-  index,
-  options,
-  uiSchema,
-  setDragging,
-  formattedValues,
-}) => ({ y }) => {
-  setDragging(null);
-  if (y !== 0) {
-    let newList = list;
-    let newIndex = index;
-    if (list.length > index) {
-      const height = uiSchema['ui:inline'] ? 40 : 50;
-      const deltaIndex = Math.round(y / height);
-      newIndex = Math.max(0, index + deltaIndex);
-      const item = newList[index];
-      newList = newList.filter((v, i) => (i !== index));
-      newList.splice(newIndex, 0, item);
-    }
-    set(formattedValues, `${name}`.replace(/\.[0-9]+\./g, '[$1]'), newList);
-    options.onChangeFormatted(formattedValues, name);
+  let midPosition = positions[mid];
+  if (!midPosition) {
+    midPosition = await getItemPosition(refs[mid]);
   }
-  options.onFocus('');
+
+  const yThreshold = midPosition.y + (midPosition.height / 2);
+  const xThreshold = midPosition.x + (midPosition.width / 2);
+
+  let before;
+  if (position.y + position.height < yThreshold) { // Item is in a line before midItem's line
+    before = true;
+  } else if (position.y > yThreshold) { // Item is in a line after midItem's line
+    before = false;
+  } else if (position.x + position.width < xThreshold) {
+    before = true; // Item is in a column before midItem's column
+  } else if (position.x > xThreshold) {
+    before = false; // Item is in a column after midItem's column
+  } else if (index === mid) {
+    return index;
+  } else {
+    before = index < mid; // Keep same relative position
+  }
+
+  if (i >= j) {
+    return before ? pos : i;
+  }
+
+  const nextI = before ? i : Math.min(j, mid + 1);
+  const nextJ = before ? Math.max(i, mid - 1) : j;
+  const nextPos = before ? Math.min(pos, mid) : mid;
+
+  return findIndex(index, position, nextPos, nextI, nextJ, refs, positions);
 };
 
-const onRemovePressHandler = ({ index, onRemove }) => () => onRemove(index);
+const useOnDragStart = ({ index, setDragging }) => () => setDragging(index);
 
-const onFocusHandler = ({ propertyName, options }) => childName => options
-  .onFocus(childName || propertyName);
+const useOnDragEnd = ({
+  name,
+  value,
+  index,
+  refs,
+  onChange,
+  reorder,
+  setDragging,
+  errors,
+  meta,
+  positions,
+}) => async ({ y, x }) => {
+  if (y !== 0 || x !== 0) {
+    let nextValue = value;
+    let nextMeta = meta;
+    let nextErrors = errors;
+    if (value.length > 1) {
+      let position = positions[index];
+      if (!position) {
+        position = await getItemPosition(refs[index]);
+      } else {
+        position = {
+          ...position,
+          y: position.y + y,
+          x: position.x + x,
+        };
+      }
 
-const onChangeHandler = ({ propertyName, options }) => (value, childName) => options
-  .onChange(value, childName || propertyName);
+      const nextIndex = await findIndex(
+        index,
+        position,
+        index,
+        0,
+        value.length - 1,
+        refs,
+        positions,
+      );
 
-const ItemComponentHandler = props => ({ panHandlers }) => (
-  <Item {...props} panHandlers={panHandlers} />
-);
+      const itemValue = value[index];
+      nextValue = value.filter((v, i) => (i !== index));
+      nextValue.splice(nextIndex, 0, itemValue);
+      if (meta) {
+        const itemMeta = nextMeta[index];
+        nextMeta = nextMeta.filter((v, i) => (i !== index));
+        nextMeta.splice(nextIndex, 0, itemMeta);
+      }
+      if (errors) {
+        const itemError = nextErrors[index];
+        nextErrors = nextErrors.filter((v, i) => (i !== index));
+        nextErrors.splice(nextIndex, 0, itemError);
+      }
+    }
+    onChange(nextValue, name, {
+      nextMeta: nextMeta || false,
+      nextErrors: nextErrors || false,
+    });
+    setTimeout(reorder);
+  } else {
+    setDragging(null);
+  }
+};
 
-const DraggableItem = compose(
-  withProps(({
-    name,
-    index,
-    errorSchema,
-  }) => ({
-    handle: `${name}__handle`,
-    propertyName: `${name}.${index}`,
-    propertyErrorSchema: (errorSchema && errorSchema[index]) || {},
-  })),
-  withHandlers({
-    onDragStart: onDragStartHandler,
-    onDragEnd: onDragEndHandler,
-    onRemovePress: onRemovePressHandler,
-    onFocus: onFocusHandler,
-    onChange: onChangeHandler,
-  }),
-  withHandlers({
-    ItemComponent: ItemComponentHandler,
-  }),
-)((props) => {
+const useOnRemovePress = ({ index, onRemove }) => () => onRemove(index);
+
+const useOnItemRef = ({ index, onItemRef }) => ref => onItemRef(ref, index);
+
+const DraggableItem = (props) => {
   const {
-    handle,
+    name,
     scroller,
     orderable,
-    onDragStart,
-    onDragEnd,
-    ItemComponent,
     titleOnly,
+    uiSchema,
+    style,
+    axis,
+    Item,
   } = props;
+
+  const handle = `${name.replace(/\./g, '_')}__handle`;
+
+  const onDragStart = useOnDragStart(props);
+  const onDragEnd = useOnDragEnd(props);
+  const onRemovePress = useOnRemovePress(props);
+  const onItemRef = useOnItemRef(props);
+
   return (
     <RNDraggable
       handle={handle}
       scroller={scroller}
-      style={styles.container}
+      style={[styles.container, get(uiSchema, ['ui:widgetProps', 'style'], null)]}
       disabled={!orderable || titleOnly}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
-      axis="y"
+      axis={axis}
     >
-      {ItemComponent}
+      {({ panHandlers }) => (
+        <Item
+          {...omit(props, 'style')}
+          handle={handle}
+          itemStyle={style}
+          panHandlers={panHandlers}
+          onItemRef={onItemRef}
+          onRemovePress={onRemovePress}
+        />
+      )}
     </RNDraggable>
   );
-});
+};
+
+DraggableItem.propTypes = {
+  Item: PropTypes.elementType.isRequired,
+  name: PropTypes.string.isRequired,
+  value: PropTypes.arrayOf(PropTypes.any).isRequired,
+  index: PropTypes.number.isRequired,
+  uiSchema: PropTypes.shape().isRequired,
+  onChange: PropTypes.func.isRequired,
+  orderable: PropTypes.bool.isRequired,
+  titleOnly: PropTypes.bool,
+  scroller: PropTypes.shape(),
+  axis: PropTypes.string,
+  style: StylePropType,
+};
+
+DraggableItem.defaultProps = {
+  titleOnly: undefined,
+  scroller: undefined,
+  axis: 'y',
+  style: {},
+};
 
 export default DraggableItem;

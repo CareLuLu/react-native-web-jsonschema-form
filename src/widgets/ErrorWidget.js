@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
-import { Text } from 'react-native-web-ui-components';
+import Text from 'react-native-web-ui-components/Text';
 import { withTheme } from 'react-native-web-ui-components/Theme';
 
 const styles = StyleSheet.create({

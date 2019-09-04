@@ -1,8 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
-import { withHandlers } from 'recompact';
-import { StylePropType, Datepicker, createDomStyle } from 'react-native-web-ui-components';
+import Datepicker from 'react-native-web-ui-components/Datepicker';
+import StylePropType from 'react-native-web-ui-components/StylePropType';
+import createDomStyle from 'react-native-web-ui-components/createDomStyle';
+import {
+  useOnChange,
+  useAutoFocus,
+} from '../utils';
 
 const styles = StyleSheet.create({
   defaults: {
@@ -16,74 +21,70 @@ const styles = StyleSheet.create({
   },
 });
 
-const DateWidget = withHandlers({
-  onWrappedFocus: ({ onFocus }) => () => onFocus(),
-  onWrappedChange: ({ onChange, onFocus }) => (value) => {
-    onFocus();
-    onChange(value);
-  },
-})(({
-  uiSchema,
-  onChange,
-  onWrappedChange,
-  onWrappedFocus,
-  name,
-  focus,
-  value,
-  placeholder,
-  readonly,
-  disabled,
-  hasError,
-  auto,
-  style,
-}) => {
-  const focused = focus === name || (focus === null && uiSchema['ui:autofocus']);
+const DateWidget = (props) => {
+  const {
+    uiSchema,
+    onChange,
+    name,
+    value,
+    placeholder,
+    readonly,
+    disabled,
+    hasError,
+    auto,
+    style,
+    showCalendarOnFocus,
+  } = props;
+
+  const autoFocusParams = useAutoFocus(props);
+  const onWrappedChange = useOnChange(props);
+
   const css = [styles.defaults];
   css.push(auto ? styles.auto : styles.fullWidth);
   css.push(style);
   const className = `DateWidget__${name.replace(/\./g, '-')}`;
+
   let date = value;
   if (date && date.indexOf('T') >= 0) {
     date = date.split('T')[0].split('-');
     date = `${date[1]}/${date[2]}/${date[0]}`;
-    setTimeout(() => onChange(date, name, true));
+    setTimeout(() => onChange(date, name, {
+      silent: true,
+    }));
   }
+
   return (
-    <React.Fragment>
-      <Datepicker
-        disabled={disabled}
-        readonly={readonly}
-        hasError={hasError}
-        name={name}
-        className={className}
-        excludeDates={uiSchema['ui:excludeDates'] || null}
-        minDate={uiSchema['ui:minDate'] || null}
-        maxDate={uiSchema['ui:maxDate'] || null}
-        auto={auto}
-        date={date}
-        onDateChange={onWrappedChange}
-        onFocus={onWrappedFocus}
-        placeholder={placeholder}
-        autoFocus={focused}
-        customStyles={{
-          dateInput: css,
-        }}
-        css={`
-          .react-datepicker__input-container input.${className} {
-            ${createDomStyle(css)}
-          }
-        `}
-      />
-    </React.Fragment>
+    <Datepicker
+      {...autoFocusParams}
+      disabled={disabled}
+      readonly={readonly}
+      hasError={hasError}
+      name={name}
+      className={className}
+      excludeDates={uiSchema['ui:excludeDates'] || null}
+      minDate={uiSchema['ui:minDate'] || null}
+      maxDate={uiSchema['ui:maxDate'] || null}
+      auto={auto}
+      date={date}
+      onDateChange={onWrappedChange}
+      placeholder={placeholder}
+      customStyles={{
+        input: css,
+      }}
+      showCalendarOnFocus={showCalendarOnFocus}
+      css={`
+        .react-datepicker__input-container input.${className} {
+          ${createDomStyle(css)}
+        }
+      `}
+    />
   );
-});
+};
 
 DateWidget.propTypes = {
-  uiSchema: PropTypes.shape({}).isRequired,
-  onFocus: PropTypes.func.isRequired,
+  uiSchema: PropTypes.shape().isRequired,
   onChange: PropTypes.func.isRequired,
   name: PropTypes.string.isRequired,
-  focus: PropTypes.string,
   value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   placeholder: PropTypes.string,
   readonly: PropTypes.bool,
@@ -91,10 +92,10 @@ DateWidget.propTypes = {
   hasError: PropTypes.bool,
   auto: PropTypes.bool,
   style: StylePropType,
+  showCalendarOnFocus: PropTypes.bool,
 };
 
 DateWidget.defaultProps = {
-  focus: null,
   value: '',
   placeholder: '',
   readonly: false,
@@ -102,6 +103,7 @@ DateWidget.defaultProps = {
   hasError: false,
   auto: false,
   style: null,
+  showCalendarOnFocus: true,
 };
 
 export default DateWidget;

@@ -1,8 +1,14 @@
 import React from 'react';
-import TextWidget from './TextWidget';
+import { isNaN } from 'lodash';
+import TextInputWidget from './TextInputWidget';
+
+const textParser = (value) => {
+  const result = parseInt(value, 10);
+  return !isNaN(result) ? result : null;
+};
 
 const IntegerWidget = props => (
-  <TextWidget {...props} keyboardType="number-pad" mask="9999999999" />
+  <TextInputWidget {...props} keyboardType="number-pad" mask="9999999999" textParser={textParser} />
 );
 
 export default IntegerWidget;

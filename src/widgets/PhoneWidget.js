@@ -1,15 +1,17 @@
 import React from 'react';
-import TextWidget from './TextWidget';
-import { toPhone } from '../../utils/string';
+import PropTypes from 'prop-types';
+import TextInputWidget from './TextInputWidget';
 
-const isComplete = /^[0-9]{10}$/;
+const PhoneWidget = props => <TextInputWidget {...props} />;
 
-const PhoneWidget = (props) => {
-  const { value, name, onChange } = props;
-  if (isComplete.test(value || '')) {
-    setTimeout(() => onChange(toPhone(value), name, true));
-  }
-  return <TextWidget {...props} keyboardType="number-pad" mask="(999) 999-9999" />;
+PhoneWidget.propTypes = {
+  mask: PropTypes.string,
+  keyboardType: PropTypes.string,
+};
+
+PhoneWidget.defaultProps = {
+  mask: '(999) 999-9999',
+  keyboardType: 'number-pad',
 };
 
 export default PhoneWidget;

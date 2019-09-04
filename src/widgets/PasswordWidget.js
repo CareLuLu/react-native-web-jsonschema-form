@@ -1,8 +1,8 @@
 import React from 'react';
-import TextWidget from './TextWidget';
+import TextInputWidget from './TextInputWidget';
 
 const PasswordWidget = props => (
-  <TextWidget {...props} secureTextEntry />
+  <TextInputWidget {...props} secureTextEntry />
 );
 
 export default PasswordWidget;

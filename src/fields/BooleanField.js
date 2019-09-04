@@ -1,81 +1,69 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
-import { get, indexOf } from 'lodash';
-import { ucfirst } from '../../utils/string';
+import { get } from 'lodash';
+import AbstractField from './AbstractField';
 
 const styles = StyleSheet.create({
   padding: {
     paddingLeft: 10,
   },
+  inline: {
+    marginBottom: 10,
+  },
 });
 
-class BooleanField extends React.Component {
-  static propTypes = {
-    cached: PropTypes.bool.isRequired,
-    name: PropTypes.string.isRequired,
-    uiSchema: PropTypes.shape({}).isRequired,
-    widgets: PropTypes.shape({}).isRequired,
-    fields: PropTypes.shape({}).isRequired,
-  };
-
-  shouldComponentUpdate(nextProps) {
-    return nextProps.update === 'all' || indexOf(nextProps.update, nextProps.name) >= 0;
+class BooleanField extends AbstractField {
+  getDefaultWidget() {
+    const { widgets } = this.props;
+    return widgets.HiddenWidget;
   }
 
-  render() {
-    const {
-      cached,
-      name,
-      uiSchema,
-      widgets,
-      fields,
-    } = this.props;
-    const hasCache = !!(cached && this.cache);
-    if (!hasCache) {
-      let Widget = widgets[`${ucfirst(uiSchema['ui:widget'])}Widget`];
-      if (!Widget) {
-        Widget = widgets.CheckboxWidget;
-      }
-      let Component;
-      if (Widget === widgets.CheckboxWidget) {
-        Component = widgetProps => (
-          <Widget {...widgetProps} value checked={!!widgetProps.formData[name]} />
-        );
-      } else if (Widget === widgets.RadioWidget) {
-        Component = widgetProps => (
-          <React.Fragment>
-            <Widget
-              {...widgetProps}
-              text={get(uiSchema, ['ui:options', 'trueText'], 'Yes')}
-              checked={widgetProps.formData[name] === true}
-              style={[
-                !uiSchema['ui:inline'] || uiSchema['ui:title'] !== false ? styles.padding : null,
-                widgetProps.style,
-              ]}
-              value
-            />
-            <Widget
-              {...widgetProps}
-              text={get(uiSchema, ['ui:options', 'falseText'], 'No')}
-              checked={widgetProps.formData[name] === false}
-              style={[
-                styles.padding,
-                widgetProps.style,
-              ]}
-              value={false}
-            />
-          </React.Fragment>
-        );
-      } else {
-        Component = widgetProps => (
-          <Widget {...widgetProps} value={widgetProps.formData[name]} />
-        );
-      }
-      const { BaseField } = fields;
-      this.cache = props => <BaseField {...props} field={this} widget={Component} />;
+  getWidget() {
+    const { widgets, uiSchema } = this.props;
+    const widgetName = uiSchema['ui:widget'];
+    const trueText = get(uiSchema, ['ui:options', 'trueText'], 'Yes');
+    const trueValue = get(uiSchema, ['ui:options', 'trueValue'], true);
+    const falseText = get(uiSchema, ['ui:options', 'falseText'], 'No');
+    const falseValue = get(uiSchema, ['ui:options', 'falseValue'], false);
+
+    let Widget;
+    if (!widgetName || widgetName === 'checkbox') {
+      const { CheckboxWidget } = widgets;
+      Widget = ({ value, ...props }) => (
+        <CheckboxWidget {...props} value={trueValue} checked={value === trueValue} />
+      );
+    } else if (widgetName === 'radio' || widgetName === 'radiobox') {
+      const { RadioWidget } = widgets;
+      const inlineOptions = uiSchema['ui:options'] && uiSchema['ui:options'].inline;
+      Widget = ({ value, style, ...props }) => (
+        <React.Fragment>
+          <RadioWidget
+            {...props}
+            auto={uiSchema['ui:inline'] || inlineOptions}
+            text={trueText}
+            checked={value === trueValue}
+            style={[
+              uiSchema['ui:inline'] && uiSchema['ui:title'] !== false ? styles.padding : null,
+              uiSchema['ui:inline'] || inlineOptions ? styles.inline : null,
+              style,
+            ]}
+            value={trueValue}
+          />
+          <RadioWidget
+            {...props}
+            auto={uiSchema['ui:inline'] || inlineOptions}
+            text={falseText}
+            checked={value === falseValue}
+            style={[
+              uiSchema['ui:inline'] || inlineOptions ? [styles.padding, styles.inline] : null,
+              style,
+            ]}
+            value={falseValue}
+          />
+        </React.Fragment>
+      );
     }
-    return this.cache({ ...this.props, cached: hasCache });
+    return Widget;
   }
 }
 

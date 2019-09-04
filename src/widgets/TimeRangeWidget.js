@@ -1,15 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
-import { withHandlers } from 'recompact';
 import { pick } from 'lodash';
-import { View, TimeRangePicker, StylePropType } from 'react-native-web-ui-components';
-import {
+import View from 'react-native-web-ui-components/View';
+import StylePropType from 'react-native-web-ui-components/StylePropType';
+import TimeRangePicker, {
   NUMBER_DECODER,
   NUMBER_ENCODER,
   STRING_DECODER,
   STRING_ENCODER,
 } from 'react-native-web-ui-components/TimeRangePicker';
+import { useOnChange, useAutoFocus } from '../utils';
 
 const styles = StyleSheet.create({
   empty: {},
@@ -31,32 +32,31 @@ const timePickerAttributes = [
   'minTime',
   'maxTime',
   'interval',
+  'filterTime',
+  'selectedStyle',
+  'unselectedStyle',
 ];
 
-const TimeRangeWidget = withHandlers({
-  onWrappedFocus: ({ onFocus }) => () => onFocus(),
-  onWrappedChange: ({ onChange, onFocus }) => (value) => {
-    onFocus();
-    onChange(value);
-  },
-})(({
-  schema,
-  uiSchema,
-  hasError,
-  name,
-  focus,
-  value,
-  readonly,
-  disabled,
-  auto,
-  onWrappedChange,
-  onWrappedFocus,
-  encoder,
-  decoder,
-  header,
-  style,
-  ...props
-}) => {
+const TimeRangeWidget = (props) => {
+  const {
+    schema,
+    uiSchema,
+    hasError,
+    name,
+    value,
+    readonly,
+    disabled,
+    auto,
+    encoder,
+    decoder,
+    header,
+    style,
+    ...nextProps
+  } = props;
+
+  const autoFocusParams = useAutoFocus(props);
+  const onChange = useOnChange(props);
+
   const currentStyle = [
     styles.defaults,
     auto ? styles.auto : styles.fullWidth,
@@ -66,7 +66,7 @@ const TimeRangeWidget = withHandlers({
   }
   currentStyle.push(style);
 
-  const timePickerProps = pick(props, timePickerAttributes);
+  const timePickerProps = pick(nextProps, timePickerAttributes);
   timePickerProps.header = header;
   if (encoder !== null) {
     if (encoder === 'number') {
@@ -84,26 +84,24 @@ const TimeRangeWidget = withHandlers({
     <View style={currentStyle}>
       <TimeRangePicker
         {...timePickerProps}
+        {...autoFocusParams}
         name={name}
         hasError={hasError}
         disabled={disabled}
         readonly={readonly}
         value={value}
-        onFocus={onWrappedFocus}
-        onChange={onWrappedChange}
+        onChange={onChange}
       />
     </View>
   );
-});
+};
 
 TimeRangeWidget.propTypes = {
   schema: PropTypes.shape({}).isRequired,
   uiSchema: PropTypes.shape({}).isRequired,
   hasError: PropTypes.bool.isRequired,
-  onFocus: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
   name: PropTypes.string.isRequired,
-  focus: PropTypes.string,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
   readonly: PropTypes.bool,
   disabled: PropTypes.bool,
@@ -115,14 +113,11 @@ TimeRangeWidget.propTypes = {
 };
 
 TimeRangeWidget.defaultProps = {
-  focus: null,
   value: null,
   readonly: false,
   disabled: false,
   auto: false,
   style: null,
-  text: undefined,
-  checked: false,
   encoder: null,
   decoder: null,
   header: true,

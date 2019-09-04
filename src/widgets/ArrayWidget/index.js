@@ -1,40 +1,40 @@
-import React from 'react';
-import { StyleSheet } from 'react-native';
+import React, { useState } from 'react';
 import {
-  get,
-  set,
+  noop,
   each,
   last,
   times,
   isArray,
+  isFunction,
 } from 'lodash';
+import { titleize } from 'underscore.string';
+import Screen from 'react-native-web-ui-components/Screen';
+import Icon from 'react-native-web-ui-components/Icon';
 import {
-  withState,
-  withProps,
-  withHandlers,
-  compose,
-} from 'recompact';
-import { Screen, Button } from 'react-native-web-ui-components';
-import { ucfirst, titleize } from '../../../utils/string';
+  getTitle,
+  getComponent,
+  FIELD_TITLE,
+} from '../../utils';
+import getItemPosition from './getItemPosition';
+import AddHandle from './AddHandle';
 import OrderHandle from './OrderHandle';
 import RemoveHandle from './RemoveHandle';
+import Item from './Item';
 import DraggableItem from './DraggableItem';
 
 /* eslint react/no-array-index-key: 0 */
 
-const styles = StyleSheet.create({
-  label: {
-    fontWeight: 'bold',
-    paddingTop: 10,
-  },
-  labelXs: {
-    paddingBottom: 5,
-  },
-});
+const getItem = (schema) => {
+  let newItem = '';
+  if (schema.items.type === 'object') {
+    newItem = {};
+  } else if (schema.items.type === 'array') {
+    newItem = [];
+  }
+  return newItem;
+};
 
 const formatTitle = title => titleize(title).replace(/ies$/, 'y').replace(/s$/, '');
-
-const getField = type => `${ucfirst(type)}Field`;
 
 const iterateUiSchema = (uiSchema, i) => {
   const widgetProps = uiSchema['ui:widgetProps'] || {};
@@ -48,7 +48,11 @@ const iterateUiSchema = (uiSchema, i) => {
   };
 };
 
-const adjustUiSchema = (uiSchema, i) => {
+const adjustUiSchema = (possibleUiSchema, i, props) => {
+  let uiSchema = possibleUiSchema;
+  if (isFunction(possibleUiSchema['ui:iterate'])) {
+    uiSchema = possibleUiSchema['ui:iterate'](i, props);
+  }
   const adjustedUiSchema = iterateUiSchema(uiSchema, i);
   each(uiSchema, (uis, key) => {
     if (!/^ui:/.test(key)) {
@@ -58,196 +62,240 @@ const adjustUiSchema = (uiSchema, i) => {
   return adjustedUiSchema;
 };
 
-const parser = value => value;
-
-const getProps = ({
-  name,
-  schema,
-  fields,
-  uiSchema,
-  formData,
-  castValue,
-  formattedValues,
-  formatExpression,
-  arrayParser,
-  arrayValues,
-}) => { // eslint-disable-line
-  const screenType = Screen.getType();
-  const expressionOptions = {
+const getProps = (props) => {
+  const {
     name,
-    key: last(name.split('.')),
-    value: castValue(formData[name], schema),
-  };
-  const title = `${formatExpression(uiSchema['ui:title'] || '%title%', expressionOptions)}`;
+    value,
+    schema,
+    fields,
+    uiSchema,
+  } = props;
 
-  const defaultUiSchema = uiSchema['*'] || {};
+  const screenType = Screen.getType();
+  const title = getTitle(uiSchema['ui:title'] || FIELD_TITLE, {
+    name,
+    value,
+    key: last(name.split('.')),
+  });
   const propertySchema = schema.items;
-  const propertyUiSchema = Object.assign(
-    {},
-    defaultUiSchema,
-    uiSchema.items || {},
-    { '*': defaultUiSchema || uiSchema['*'] },
-  );
-  const { BaseField } = fields;
-  const PropertyField = fields[getField(propertySchema.type)];
-  const list = arrayValues || get(formattedValues, name) || [];
+  const propertyUiSchema = uiSchema.items;
+  const PropertyField = getComponent(propertySchema.type, 'Field', fields);
   const options = uiSchema['ui:options'] || {};
 
-  const baseFieldUiSchema = Object.assign({
-    'ui:titleProps': {},
-  }, uiSchema);
-  if (schema.items.type === 'object') {
-    baseFieldUiSchema['ui:titleProps'].style = [
-      styles.label,
-      screenType === 'xs' ? styles.labelXs : null,
-      baseFieldUiSchema['ui:titleProps'].style || null,
-    ];
-  }
-
   const extraProps = {
-    list,
     title,
     screenType,
     propertySchema,
     propertyUiSchema,
     PropertyField,
-    BaseField,
-    baseFieldUiSchema,
-    arrayParser: arrayParser || parser,
+    axis: options.axis || 'y',
+    minimumNumberOfItems: (
+      options.minimumNumberOfItems === undefined
+      || options.minimumNumberOfItems === null
+    ) ? 1 : options.minimumNumberOfItems,
     addLabel: options.addLabel || `Add ${formatTitle(title)}`,
+    removeLabel: options.removeLabel || 'Remove',
+    orderLabel: options.orderLabel || <Icon name="th" />,
+    removeStyle: options.removeStyle,
+    orderStyle: options.orderStyle,
     addable: options.addable !== false,
     removable: options.removable !== false,
     orderable: options.orderable !== false,
+    AddComponent: options.AddComponent || AddHandle,
     OrderComponent: options.OrderComponent || OrderHandle,
     RemoveComponent: options.RemoveComponent || RemoveHandle,
+    ItemComponent: options.ItemComponent || Item,
   };
-  return extraProps;
+  return { ...props, ...extraProps };
 };
 
-const onAddHandler = ({
-  list,
+const useOnAdd = ({
   name,
+  meta,
+  value,
   schema,
-  options,
-  arrayParser,
-  formattedValues,
-}) => () => {
-  let newItem = '';
-  if (schema.items.type === 'object') {
-    newItem = { __: 'new' };
-  } else if (schema.items.type === 'array') {
-    newItem = [];
-  }
-  const newList = list.concat(list.length !== 0 ? [newItem] : [newItem, newItem]);
-  set(formattedValues, `${name}`.replace(/\.[0-9]+\./g, '[$1]'), arrayParser(newList));
-  options.onChangeFormatted(formattedValues, name);
-  options.onFocus('');
-};
-
-const onRemoveHandler = ({
-  list,
-  name,
-  options,
-  arrayParser,
-  formattedValues,
-}) => (index) => {
-  const newList = list.filter((v, i) => (i !== index));
-  set(formattedValues, `${name}`.replace(/\.[0-9]+\./g, '[$1]'), arrayParser(newList));
-  options.onChangeFormatted(formattedValues, name);
-};
-
-const onChangeHandler = ({
   onChange,
-}) => (value, ...args) => onChange(value, ...args);
+  minimumNumberOfItems,
+}) => () => {
+  let nextValue;
+  let nextMeta = meta;
+  if (value.length < minimumNumberOfItems) {
+    nextValue = value.concat(times(minimumNumberOfItems - value.length + 1, () => getItem(schema)));
+    if (meta) {
+      nextMeta = nextMeta.concat(times(minimumNumberOfItems - value.length + 1, () => ({})));
+    }
+  } else {
+    nextValue = value.concat([getItem(schema)]);
+    if (meta) {
+      nextMeta = nextMeta.concat([{}]);
+    }
+  }
+  onChange(nextValue, name, {
+    nextMeta: nextMeta || false,
+  });
+};
 
-const PropertyComponentHandler = topProps => innerProps => (
-  <DraggableItem {...topProps} {...innerProps} />
-);
+const useOnRemove = ({
+  name,
+  value,
+  onChange,
+  reorder,
+  errors,
+  meta,
+}) => (index) => {
+  const nextValue = value.filter((v, i) => (i !== index));
+  let nextMeta = meta;
+  if (meta) {
+    nextMeta = nextMeta.filter((v, i) => (i !== index));
+  }
+  let nextErrors = errors;
+  if (errors) {
+    nextErrors = nextErrors.filter((v, i) => (i !== index));
+  }
+  onChange(nextValue, name, {
+    nextMeta: nextMeta || false,
+    nextErrors: nextErrors || false,
+  });
+  setTimeout(reorder);
+};
 
-const ArrayWidget = compose(
-  withState('dragging', 'setDragging', null),
-  withProps(getProps),
-  withHandlers({
-    onAdd: onAddHandler,
-    onRemove: onRemoveHandler,
-    onChange: onChangeHandler,
-  }),
-  withHandlers({
-    PropertyComponent: PropertyComponentHandler,
-  }),
-)(({ arrayParser, arrayValues, ...props }) => { // Make sure array* is not passed through
+const useOnItemRef = ({ refs, positions }) => (ref, index) => {
+  refs[index] = ref; // eslint-disable-line
+  setTimeout(() => {
+    getItemPosition(ref).then((position) => {
+      positions[index] = position; // eslint-disable-line
+    }).catch(noop);
+  }, 100);
+};
+
+const useSetDragging = ({ setDragging, setState }) => (dragging) => {
+  if (setDragging) {
+    setDragging(dragging);
+  }
+  setState(current => ({ ...current, dragging }));
+};
+
+const useReorder = ({ review, setState }) => () => setState({
+  refs: [],
+  positions: [],
+  review: review + 1,
+  dragging: null,
+});
+
+const ArrayWidget = (props) => {
+  const [state, setState] = useState({
+    refs: [],
+    positions: [],
+    review: 0,
+    dragging: null,
+  });
+
+  const setDragging = useSetDragging({ ...props, setState });
+  const params = getProps({ ...props, ...state, setDragging });
+  const reorder = useReorder({ ...params, setState });
+
+  const onAdd = useOnAdd(params);
+  const onRemove = useOnRemove({ ...params, reorder });
+  const onItemRef = useOnItemRef(params);
+
   const {
-    list,
+    meta,
+    review,
     name,
+    value,
     title,
     addLabel,
     addable,
-    onAdd,
     widgets,
     schema,
     uiSchema,
-    errorSchema,
-    screenType,
+    errors,
     dragging,
-    baseFieldUiSchema,
-    BaseField,
+    screenType,
     propertyUiSchema,
-    PropertyComponent,
-  } = props;
+    minimumNumberOfItems,
+    AddComponent,
+    ItemComponent,
+  } = params;
+
   const { LabelWidget } = widgets;
-  const hasError = isArray(errorSchema) && errorSchema.length && !errorSchema.hidden;
+  const hasError = isArray(errors) && errors.length > 0 && !errors.hidden;
+  const hasTitle = uiSchema['ui:title'] !== false;
+  const toggleable = !!uiSchema['ui:toggleable'];
+  const missingItems = Math.max(0, minimumNumberOfItems - value.length);
+
   return (
     <React.Fragment>
-      {uiSchema['ui:title'] !== false ? (
-        <LabelWidget hasError={hasError} auto={uiSchema['ui:inline']} {...baseFieldUiSchema['ui:titleProps']}>
+      {hasTitle || toggleable ? (
+        <LabelWidget
+          {...params}
+          toggleable={toggleable}
+          hasTitle={hasTitle}
+          hasError={hasError}
+          auto={uiSchema['ui:inline']}
+          {...(uiSchema['ui:titleProps'] || {})}
+        >
           {title}
         </LabelWidget>
       ) : null}
-      {schema.items.type === 'object' && baseFieldUiSchema.items['ui:title'] !== false && screenType !== 'xs' ? (
-        <BaseField
-          {...props}
-          key={`${name}__title`}
-          uiSchema={baseFieldUiSchema}
-          propertyUiSchema={adjustUiSchema(propertyUiSchema, -1)}
-          widget={PropertyComponent}
+      {schema.items.type === 'object' && uiSchema.items['ui:title'] !== false && screenType !== 'xs' ? (
+        <DraggableItem
+          {...params}
+          reorder={reorder}
+          onRemove={onRemove}
+          onItemRef={onItemRef}
+          propertyName={`${name}.title`}
+          propertyValue={getItem(schema)}
+          propertyErrors={{}}
+          propertyMeta={getItem(schema) || {}}
+          propertyUiSchema={adjustUiSchema(propertyUiSchema, -1, params)}
           index={-1}
           zIndex={1}
+          Item={ItemComponent}
           titleOnly
         />
       ) : null}
-      {!list.length ? (
-        <BaseField
-          {...props}
-          key={0}
-          uiSchema={baseFieldUiSchema}
-          propertyUiSchema={adjustUiSchema(propertyUiSchema, 0)}
-          widget={PropertyComponent}
-          index={0}
-          zIndex={1}
+      {times(value.length, index => (
+        <DraggableItem
+          {...params}
+          reorder={reorder}
+          onRemove={onRemove}
+          onItemRef={onItemRef}
+          key={`${review}.${name}.${index}`}
+          propertyName={`${name}.${index}`}
+          propertyValue={value[index]}
+          propertyMeta={(meta && meta[index]) || getItem(schema) || {}}
+          propertyErrors={errors && errors[index]}
+          propertyUiSchema={adjustUiSchema(propertyUiSchema, index, params)}
+          index={index}
+          zIndex={(dragging === index ? value.length : (value.length - index)) + 1}
+          Item={ItemComponent}
           noTitle={screenType !== 'xs'}
         />
-      ) : null}
-      {times(list.length, index => (
-        <BaseField
-          {...props}
-          zIndex={dragging === index ? list.length : (list.length - index)}
-          key={index}
-          uiSchema={baseFieldUiSchema}
-          propertyUiSchema={adjustUiSchema(propertyUiSchema, index)}
-          widget={PropertyComponent}
+      ))}
+      {times(missingItems, index => (
+        <DraggableItem
+          {...params}
+          reorder={reorder}
+          onRemove={onRemove}
+          onItemRef={onItemRef}
+          key={`${review}.${name}.${value.length + index}`}
+          propertyName={`${name}.${value.length + index}`}
+          propertyValue={getItem(schema)}
+          propertyMeta={getItem(schema) || {}}
+          propertyErrors={errors && errors[index]}
+          propertyUiSchema={adjustUiSchema(propertyUiSchema, value.length + index, params)}
           index={index}
+          zIndex={(dragging === index ? missingItems : (missingItems - index)) + 1}
+          Item={ItemComponent}
           noTitle={screenType !== 'xs'}
         />
       ))}
       {addable ? (
-        <Button auto small flat={false} radius type="pink" onPress={onAdd}>
-          {addLabel}
-        </Button>
+        <AddComponent {...params} onPress={onAdd} addLabel={addLabel} />
       ) : null}
     </React.Fragment>
   );
-});
-
-ArrayWidget.custom = true;
+};
 
 export default ArrayWidget;
