@@ -49,7 +49,7 @@ const SelectWidget = (props) => {
       hasError={hasError}
       auto={auto}
       name={name}
-      value={`${value}`}
+      value={value === null || value === undefined ? '' : `${value}`}
       values={values.map(v => `${v}`)}
       labels={labels}
       onChange={onChange}
