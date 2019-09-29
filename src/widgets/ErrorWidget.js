@@ -27,10 +27,13 @@ const ErrorWidget = ({
   last,
   first,
   auto,
+  ...props
 }) => {
-  const style = [styles.regular, {
-    color: StyleSheet.flatten(theme.input.error.border).borderColor,
-  }];
+  const style = [
+    styles.regular,
+    { color: StyleSheet.flatten(theme.input.error.border).borderColor },
+    props.style, // eslint-disable-line
+  ];
   if (first) {
     style.push(styles.first);
   }

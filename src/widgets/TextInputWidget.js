@@ -109,9 +109,7 @@ const useTextInputHandlers = (props) => {
   const onBlur = () => {
     const nextValue = parser(props)(currentText);
     if (changeOnblur && nextValue !== value) {
-      onChange(nextValue, name, {
-        silent: true,
-      });
+      onChange(nextValue, name);
     }
   };
 

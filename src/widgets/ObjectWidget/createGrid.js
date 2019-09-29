@@ -121,6 +121,7 @@ const getLabelComponent = ({
       hasError={false}
       hasTitle
       toggleable={false}
+      onPress={gridItem.onPress || undefined}
       style={[first ? styles.labelTop : styles.label, gridItem.style]}
     >
       {gridItem.children}

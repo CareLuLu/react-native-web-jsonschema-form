@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import moment from 'moment';
 import { StyleSheet } from 'react-native';
+import { pick } from 'lodash';
 import Datepicker from 'react-native-web-ui-components/Datepicker';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
 import createDomStyle from 'react-native-web-ui-components/createDomStyle';
@@ -21,6 +23,13 @@ const styles = StyleSheet.create({
   },
 });
 
+const datepickerProps = [
+  'mode',
+  'format',
+  'timeIntervals',
+  'is24Hour',
+];
+
 const DateWidget = (props) => {
   const {
     uiSchema,
@@ -34,10 +43,21 @@ const DateWidget = (props) => {
     auto,
     style,
     showCalendarOnFocus,
+    mode,
+    format,
   } = props;
 
   const autoFocusParams = useAutoFocus(props);
   const onWrappedChange = useOnChange(props);
+
+  let currentFormat = format;
+  if (!currentFormat) {
+    switch (mode) {
+      case 'time': currentFormat = 'h:mma'; break;
+      case 'datetime': currentFormat = 'MM/DD/YYYY h:mma'; break;
+      default: currentFormat = 'MM/DD/YYYY';
+    }
+  }
 
   const css = [styles.defaults];
   css.push(auto ? styles.auto : styles.fullWidth);
@@ -46,8 +66,7 @@ const DateWidget = (props) => {
 
   let date = value;
   if (date && date.indexOf('T') >= 0) {
-    date = date.split('T')[0].split('-');
-    date = `${date[1]}/${date[2]}/${date[0]}`;
+    date = moment(date).parseZone().format(currentFormat);
     setTimeout(() => onChange(date, name, {
       silent: true,
     }));
@@ -55,6 +74,7 @@ const DateWidget = (props) => {
 
   return (
     <Datepicker
+      {...pick(props, datepickerProps)}
       {...autoFocusParams}
       disabled={disabled}
       readonly={readonly}
@@ -77,6 +97,8 @@ const DateWidget = (props) => {
           ${createDomStyle(css)}
         }
       `}
+      mode={mode}
+      format={currentFormat}
     />
   );
 };
@@ -93,6 +115,8 @@ DateWidget.propTypes = {
   auto: PropTypes.bool,
   style: StylePropType,
   showCalendarOnFocus: PropTypes.bool,
+  mode: PropTypes.oneOf(['date', 'datetime', 'time']),
+  format: PropTypes.string,
 };
 
 DateWidget.defaultProps = {
@@ -104,6 +128,8 @@ DateWidget.defaultProps = {
   auto: false,
   style: null,
   showCalendarOnFocus: true,
+  mode: 'date',
+  format: null,
 };
 
 export default DateWidget;

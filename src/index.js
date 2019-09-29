@@ -263,6 +263,7 @@ class JsonSchemaForm extends React.Component {
       update = [],
       nextErrors = false,
       nextMeta = false,
+      silent = false,
     } = params;
 
     const { metas, values, errors } = this.state;
@@ -275,6 +276,7 @@ class JsonSchemaForm extends React.Component {
       metas,
       nextMeta,
       nextErrors,
+      silent,
       path: toPath(name),
       update: [name].concat(update),
     });

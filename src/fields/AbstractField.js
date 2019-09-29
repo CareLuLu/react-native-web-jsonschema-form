@@ -187,7 +187,9 @@ class AbstractField extends React.Component {
       value,
     };
     const placeholder = getTitle(uiSchema['ui:placeholder'] || '', params);
-    const fieldClassName = schema.type !== 'object' && Widget !== ArrayWidget ? `${id}-field` : '';
+    const fieldClassName = schema.type !== 'object' && Widget !== ArrayWidget
+      ? `${id}-field ${id}-field-${name.replace(/\./g, '-')}`
+      : '';
     return (
       <View
         {...containerProps}

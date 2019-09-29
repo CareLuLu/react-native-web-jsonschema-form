@@ -255,42 +255,48 @@ const ArrayWidget = (props) => {
           titleOnly
         />
       ) : null}
-      {times(value.length, index => (
-        <DraggableItem
-          {...params}
-          reorder={reorder}
-          onRemove={onRemove}
-          onItemRef={onItemRef}
-          key={`${review}.${name}.${index}`}
-          propertyName={`${name}.${index}`}
-          propertyValue={value[index]}
-          propertyMeta={(meta && meta[index]) || getItem(schema) || {}}
-          propertyErrors={errors && errors[index]}
-          propertyUiSchema={adjustUiSchema(propertyUiSchema, index, params)}
-          index={index}
-          zIndex={(dragging === index ? value.length : (value.length - index)) + 1}
-          Item={ItemComponent}
-          noTitle={screenType !== 'xs'}
-        />
-      ))}
-      {times(missingItems, index => (
-        <DraggableItem
-          {...params}
-          reorder={reorder}
-          onRemove={onRemove}
-          onItemRef={onItemRef}
-          key={`${review}.${name}.${value.length + index}`}
-          propertyName={`${name}.${value.length + index}`}
-          propertyValue={getItem(schema)}
-          propertyMeta={getItem(schema) || {}}
-          propertyErrors={errors && errors[index]}
-          propertyUiSchema={adjustUiSchema(propertyUiSchema, value.length + index, params)}
-          index={index}
-          zIndex={(dragging === index ? missingItems : (missingItems - index)) + 1}
-          Item={ItemComponent}
-          noTitle={screenType !== 'xs'}
-        />
-      ))}
+      {times(value.length, (index) => {
+        const itemUiSchema = adjustUiSchema(propertyUiSchema, index, params);
+        return (
+          <DraggableItem
+            {...params}
+            reorder={reorder}
+            onRemove={onRemove}
+            onItemRef={onItemRef}
+            key={`${review}.${name}.${index}`}
+            propertyName={`${name}.${index}`}
+            propertyValue={value[index]}
+            propertyMeta={(meta && meta[index]) || getItem(schema) || {}}
+            propertyErrors={errors && errors[index]}
+            propertyUiSchema={itemUiSchema}
+            index={index}
+            zIndex={(dragging === index ? value.length : (value.length - index)) + 1}
+            Item={ItemComponent}
+            noTitle={screenType !== 'xs' && itemUiSchema['ui:noTitle'] !== false}
+          />
+        );
+      })}
+      {times(missingItems, (index) => {
+        const itemUiSchema = adjustUiSchema(propertyUiSchema, value.length + index, params);
+        return (
+          <DraggableItem
+            {...params}
+            reorder={reorder}
+            onRemove={onRemove}
+            onItemRef={onItemRef}
+            key={`${review}.${name}.${value.length + index}`}
+            propertyName={`${name}.${value.length + index}`}
+            propertyValue={getItem(schema)}
+            propertyMeta={getItem(schema) || {}}
+            propertyErrors={errors && errors[index]}
+            propertyUiSchema={itemUiSchema}
+            index={index}
+            zIndex={(dragging === index ? missingItems : (missingItems - index)) + 1}
+            Item={ItemComponent}
+            noTitle={screenType !== 'xs' && itemUiSchema['ui:noTitle'] !== false}
+          />
+        );
+      })}
       {addable ? (
         <AddComponent {...params} onPress={onAdd} addLabel={addLabel} />
       ) : null}

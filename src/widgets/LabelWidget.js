@@ -52,6 +52,7 @@ const LabelWidget = (preProps) => {
   const props = useTheme('LabelWidget', preProps);
 
   const {
+    onPress,
     children,
     theme,
     themeTextStyle,
@@ -64,7 +65,7 @@ const LabelWidget = (preProps) => {
     toggleable,
   } = props;
 
-  const onPress = useOnPress(props);
+  const onCheckboxPress = useOnPress(props);
 
   const currentContainerStyle = [
     styles.container,
@@ -93,11 +94,11 @@ const LabelWidget = (preProps) => {
           style={styles.checkbox}
           styleChecked={styles.checkboxIcon}
           styleUnchecked={styles.checkboxIcon}
-          onPress={onPress}
+          onPress={onCheckboxPress}
         />
       ) : null}
       {hasTitle ? (
-        <Text auto style={[currentTextStyle, omit(css, viewStyleKeys)]}>
+        <Text auto onPress={onPress} style={[currentTextStyle, omit(css, viewStyleKeys)]}>
           {children}
         </Text>
       ) : null}
@@ -116,6 +117,7 @@ LabelWidget.propTypes = {
   label: PropTypes.bool,
   auto: PropTypes.bool,
   meta: PropTypes.any, // eslint-disable-line
+  onPress: PropTypes.func,
 };
 
 LabelWidget.defaultProps = {
@@ -123,6 +125,7 @@ LabelWidget.defaultProps = {
   label: false,
   auto: false,
   children: null,
+  onPress: undefined,
 };
 
 export default LabelWidget;
