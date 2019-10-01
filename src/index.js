@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform, Keyboard } from 'react-native';
 import {
   set,
   get,
@@ -317,22 +317,27 @@ class JsonSchemaForm extends React.Component {
   };
 
   onSubmit = () => {
-    const { metas, values } = this.state;
-    const { onSubmit, filterEmptyValues } = this.props;
-    let nextValues = this.filterDisabled(values, metas);
-    if (filterEmptyValues) {
-      nextValues = this.filterEmpty(nextValues);
+    if (Platform.OS !== 'web') {
+      Keyboard.dismiss();
     }
-    const event = new FormEvent('submit', { values: nextValues });
-    this.run(onSubmit(event), (response) => {
-      if (!event.isDefaultPrevented()) {
-        this.onSuccess(response);
+    setTimeout(() => {
+      const { metas, values } = this.state;
+      const { onSubmit, filterEmptyValues } = this.props;
+      let nextValues = this.filterDisabled(values, metas);
+      if (filterEmptyValues) {
+        nextValues = this.filterEmpty(nextValues);
       }
-    }, (errorSchema) => {
-      if (!event.isDefaultPrevented()) {
-        this.onError(errorSchema);
-      }
-    });
+      const event = new FormEvent('submit', { values: nextValues });
+      this.run(onSubmit(event), (response) => {
+        if (!event.isDefaultPrevented()) {
+          this.onSuccess(response);
+        }
+      }, (errorSchema) => {
+        if (!event.isDefaultPrevented()) {
+          this.onError(errorSchema);
+        }
+      });
+    }, Platform.OS !== 'web' ? 50 : 0);
   };
 
   onSuccess = (response) => {
