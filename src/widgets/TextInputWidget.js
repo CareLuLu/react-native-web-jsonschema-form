@@ -144,6 +144,13 @@ class TextInputWidget extends React.Component {
     this.input = input;
   };
 
+  onKeyPress = (event) => {
+    const { key } = event.nativeEvent;
+    if (key === 'ArrowUp' || key === 'ArrowDown') {
+      this.scrolled = true;
+    }
+  };
+
   onChangeText = (nextText) => {
     const { onChangeText } = this.props;
     const nextValue = this.parse(nextText);
@@ -155,22 +162,24 @@ class TextInputWidget extends React.Component {
   };
 
   onContentSizeChange = () => {
-    this.contentSize = true;
+    this.scrolled = true;
   };
 
   onBlur = (...args) => {
-    if (this.contentSize && Platform.OS === 'web' && this.input) {
+    const {
+      name,
+      value,
+      onBlur,
+      onChange,
+      changeOnblur,
+      multiline,
+    } = this.props;
+
+    if (this.scrolled && Platform.OS === 'web' && this.input && multiline) {
       this.input.focus();
     } else {
       this.setState({ autoFocus: false });
       const { text } = this.state;
-      const {
-        name,
-        value,
-        onBlur,
-        onChange,
-        changeOnblur,
-      } = this.props;
       const nextValue = this.parse(text);
       if (onBlur) {
         onBlur(...args);
@@ -182,7 +191,7 @@ class TextInputWidget extends React.Component {
   };
 
   onFocus = (...args) => {
-    this.contentSize = false;
+    this.scrolled = false;
     this.setState({ autoFocus: true });
     const { onFocus } = this.props;
     if (onFocus) {
@@ -266,6 +275,7 @@ class TextInputWidget extends React.Component {
         onRef={this.onRef}
         onBlur={this.onBlur}
         onFocus={this.onFocus}
+        onKeyPress={this.onKeyPress}
         onChangeText={this.onChangeText}
         onSubmitEditing={multiline ? noop : this.onSubmitEditing}
         onContentSizeChange={this.onContentSizeChange}
