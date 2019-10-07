@@ -19,6 +19,7 @@ const SubmitButton = ({ theme, text, onPress }) => (
     onPress={onPress}
     nomargin
     style={styles.button}
+    radius
   >
     {text}
   </Button>

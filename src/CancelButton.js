@@ -10,6 +10,7 @@ const CancelButton = ({ text, onPress }) => (
     flat={false}
     type="white"
     onPress={onPress}
+    radius
   >
     {text}
   </Button>
