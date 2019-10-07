@@ -64,12 +64,12 @@ SelectWidget.propTypes = {
   uiSchema: PropTypes.shape().isRequired,
   hasError: PropTypes.bool.isRequired,
   name: PropTypes.string.isRequired,
-  value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   placeholder: PropTypes.string,
   readonly: PropTypes.bool,
   disabled: PropTypes.bool,
   auto: PropTypes.bool,
   style: StylePropType,
+  value: PropTypes.any, // eslint-disable-line
 };
 
 SelectWidget.defaultProps = {
