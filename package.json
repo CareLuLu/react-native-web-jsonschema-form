@@ -21,14 +21,14 @@
     "@babel/register": "7.6.2",
     "babel-eslint": "10.0.3",
     "babel-plugin-lodash": "3.3.4",
-    "cloc": "^2.5.0",
+    "cloc": "2.5.0",
     "eslint": "6.5.1",
     "eslint-config-airbnb": "18.0.1",
     "eslint-plugin-import": "2.18.2",
     "eslint-plugin-json": "1.4.0",
     "eslint-plugin-jsx-a11y": "6.2.3",
     "eslint-plugin-react": "7.14.3",
-    "eslint-plugin-react-hooks": "2.1.2"
+    "eslint-plugin-react-hooks": "2.2.0"
   },
   "dependencies": {
     "lodash": "^4.17.11",
