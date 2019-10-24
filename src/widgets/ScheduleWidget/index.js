@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { get, times } from 'lodash';
 import Screen from 'react-native-web-ui-components/Screen';
+import Row from 'react-native-web-ui-components/Row';
 import { days } from '../../utils';
 import fillSchedule from './fillSchedule';
 import ArrayWidget from '../ArrayWidget';
@@ -25,6 +26,9 @@ const styles = StyleSheet.create({
   checkboxXs: {
     height: 23,
     marginBottom: 5,
+  },
+  titlePadding: {
+    paddingTop: 10,
   },
 });
 
@@ -67,12 +71,12 @@ const getProps = (props) => {
   const filterTime = get(uiSchema, ['items', timesAttribute, 'ui:widgetProps', 'filterTime'], alwaysTrue);
 
   const propertyUiSchema = {
-    'ui:title': false,
     'ui:options': {
       addable: false,
       removable: false,
     },
     ...uiSchema,
+    'ui:title': false,
     items: {
       'ui:title': false,
       'ui:grid': [
@@ -219,8 +223,10 @@ const ScheduleWidget = (props) => {
 
   const onChange = useOnChange({ ...params, scheduleParser });
 
+  const hasTitle = params.uiSchema['ui:title'] !== false;
+
   return (
-    <React.Fragment>
+    <Row style={hasTitle ? styles.titlePadding : null}>
       <CheckAll
         {...params}
         onChange={onChange}
@@ -233,7 +239,7 @@ const ScheduleWidget = (props) => {
         schema={propertySchema}
         uiSchema={propertyUiSchema}
       />
-    </React.Fragment>
+    </Row>
   );
 };
 
