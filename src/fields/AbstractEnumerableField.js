@@ -26,7 +26,7 @@ class AbstractEnumerableField extends AbstractField {
       const { RadioWidget, CheckboxWidget } = widgets;
       const BaseWidget = widgetName === 'radioboxes' ? RadioWidget : CheckboxWidget;
       const inlineOptions = uiSchema['ui:options'] && uiSchema['ui:options'].inline;
-      Widget = ({ value, style, ...props }) => (
+      Widget = ({ value, style, ...props }) => ( // eslint-disable-line
         <React.Fragment>
           {values.map((trueValue, i) => (
             <BaseWidget

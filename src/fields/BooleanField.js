@@ -29,13 +29,13 @@ class BooleanField extends AbstractField {
     let Widget;
     if (!widgetName || widgetName === 'checkbox') {
       const { CheckboxWidget } = widgets;
-      Widget = ({ value, ...props }) => (
+      Widget = ({ value, ...props }) => ( // eslint-disable-line
         <CheckboxWidget {...props} value={trueValue} checked={value === trueValue} />
       );
     } else if (widgetName === 'radio' || widgetName === 'radiobox') {
       const { RadioWidget } = widgets;
       const inlineOptions = uiSchema['ui:options'] && uiSchema['ui:options'].inline;
-      Widget = ({ value, style, ...props }) => (
+      Widget = ({ value, style, ...props }) => ( // eslint-disable-line
         <React.Fragment>
           <RadioWidget
             {...props}
