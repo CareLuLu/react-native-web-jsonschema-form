@@ -149,7 +149,7 @@ const DraggableItem = (props) => {
     >
       {({ panHandlers }) => (
         <Item
-          {...omit(props, 'style')}
+          {...omit(props, 'style', 'Item')}
           handle={handle}
           itemStyle={style}
           panHandlers={panHandlers}
