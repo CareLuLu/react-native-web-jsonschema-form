@@ -68,12 +68,12 @@ const createProperty = (property, gridItem, index, params) => {
     const column = (isArray(columns) ? columns[index] : columns) || {};
     PropertyContainer = Row;
     propertyContainerProps = {
+      ...column,
       style: [
         Screen.getType() !== 'xs' ? styles.item : null,
         { zIndex: gridItem.children.length - index },
         column.style || null,
       ],
-      ...column,
     };
   } else {
     PropertyContainer = React.Fragment;

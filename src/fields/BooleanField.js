@@ -7,7 +7,7 @@ const styles = StyleSheet.create({
   padding: {
     paddingLeft: 10,
   },
-  inline: {
+  margin: {
     marginBottom: 10,
   },
 });
@@ -44,7 +44,7 @@ class BooleanField extends AbstractField {
             checked={value === trueValue}
             style={[
               uiSchema['ui:inline'] && uiSchema['ui:title'] !== false ? styles.padding : null,
-              uiSchema['ui:inline'] || inlineOptions ? styles.inline : null,
+              !uiSchema['ui:inline'] ? styles.margin : null,
               style,
             ]}
             value={trueValue}
@@ -55,7 +55,8 @@ class BooleanField extends AbstractField {
             text={falseText}
             checked={value === falseValue}
             style={[
-              uiSchema['ui:inline'] || inlineOptions ? [styles.padding, styles.inline] : null,
+              uiSchema['ui:inline'] || inlineOptions ? styles.padding : null,
+              !uiSchema['ui:inline'] ? styles.margin : null,
               style,
             ]}
             value={falseValue}

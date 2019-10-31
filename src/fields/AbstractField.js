@@ -207,6 +207,7 @@ class AbstractField extends React.Component {
           <React.Fragment>
             <Widget
               {...this.props}
+              style={null}
               auto={uiSchema['ui:inline']}
               hasError={hasError}
               placeholder={placeholder}

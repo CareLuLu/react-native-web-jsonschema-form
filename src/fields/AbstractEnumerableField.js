@@ -7,7 +7,7 @@ const styles = StyleSheet.create({
   padding: {
     paddingLeft: 10,
   },
-  inline: {
+  margin: {
     marginBottom: 10,
   },
 });
@@ -43,7 +43,7 @@ class AbstractEnumerableField extends AbstractField {
                     && (uiSchema['ui:inline'] || inlineOptions)
                   )
                 ) ? styles.padding : null,
-                uiSchema['ui:inline'] || inlineOptions ? styles.inline : null,
+                !uiSchema['ui:inline'] ? styles.margin : null,
                 style,
               ]}
               value={trueValue}
