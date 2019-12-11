@@ -33,6 +33,8 @@ const allowedAttributes = [
   'text',
   'tagStyle',
   'inputStyle',
+  'menuStyle',
+  'itemStyle',
   'allowNew',
   'Item',
   'Menu',
