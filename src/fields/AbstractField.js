@@ -89,6 +89,7 @@ class AbstractField extends React.Component {
 
   renderTitle(hasError, params) {
     const {
+      id,
       name,
       widgets,
       schema,
@@ -113,6 +114,7 @@ class AbstractField extends React.Component {
     return (
       <LabelWidget
         {...this.props}
+        className={`${id}-title ${id}-title-${name.replace(/\./g, '-')}`}
         toggleable={!!uiSchema['ui:toggleable']}
         hasTitle={hasTitle}
         hasError={hasError}

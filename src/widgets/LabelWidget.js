@@ -63,6 +63,7 @@ const LabelWidget = (preProps) => {
     auto,
     hasTitle,
     toggleable,
+    className,
   } = props;
 
   const onCheckboxPress = useOnPress(props);
@@ -84,7 +85,7 @@ const LabelWidget = (preProps) => {
   const css = StyleSheet.flatten(style || {});
 
   return (
-    <View style={[currentContainerStyle, pick(css, viewStyleKeys)]}>
+    <View className={className} style={[currentContainerStyle, pick(css, viewStyleKeys)]}>
       {toggleable ? (
         <Checkbox
           text={null}
@@ -118,6 +119,7 @@ LabelWidget.propTypes = {
   auto: PropTypes.bool,
   meta: PropTypes.any, // eslint-disable-line
   onPress: PropTypes.func,
+  className: PropTypes.string,
 };
 
 LabelWidget.defaultProps = {
@@ -126,6 +128,7 @@ LabelWidget.defaultProps = {
   auto: false,
   children: null,
   onPress: undefined,
+  className: '',
 };
 
 export default LabelWidget;
