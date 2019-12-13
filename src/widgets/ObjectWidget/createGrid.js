@@ -117,6 +117,7 @@ const getLabelComponent = ({
   const Label = props => (
     <Widget
       {...props}
+      {...omit(gridItem, attributes)}
       key={key}
       hasError={false}
       hasTitle
