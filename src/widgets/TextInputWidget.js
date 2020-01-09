@@ -206,9 +206,10 @@ class TextInputWidget extends React.Component {
       value,
       onChange,
       onSubmit,
+      changeOnblur,
     } = this.props;
     const nextValue = this.parse(text);
-    if (nextValue !== value) {
+    if (changeOnBlur && nextValue !== value) {
       onChange(nextValue, name);
     }
     onSubmit();
