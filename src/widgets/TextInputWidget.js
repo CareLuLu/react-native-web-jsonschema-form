@@ -60,7 +60,7 @@ class TextInputWidget extends React.Component {
     inputProps: PropTypes.shape(),
     onChangeText: PropTypes.func,
     register: PropTypes.func,
-    changeOnblur: PropTypes.bool,
+    changeOnBlur: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -85,7 +85,7 @@ class TextInputWidget extends React.Component {
     inputProps: {},
     onChangeText: null,
     register: noop,
-    changeOnblur: true,
+    changeOnBlur: true,
   };
 
   static getDerivedStateFromProps(nextProps, prevState) {
@@ -171,7 +171,7 @@ class TextInputWidget extends React.Component {
       value,
       onBlur,
       onChange,
-      changeOnblur,
+      changeOnBlur,
       multiline,
     } = this.props;
 
@@ -184,7 +184,7 @@ class TextInputWidget extends React.Component {
       if (onBlur) {
         onBlur(...args);
       }
-      if (changeOnblur && nextValue !== value) {
+      if (changeOnBlur && nextValue !== value) {
         onChange(nextValue, name);
       }
     }
@@ -206,7 +206,7 @@ class TextInputWidget extends React.Component {
       value,
       onChange,
       onSubmit,
-      changeOnblur,
+      changeOnBlur,
     } = this.props;
     const nextValue = this.parse(text);
     if (changeOnBlur && nextValue !== value) {
