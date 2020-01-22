@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { StyleSheet } from 'react-native';
-import { get, times } from 'lodash';
+import { get, times, cloneDeep } from 'lodash';
 import Screen from 'react-native-web-ui-components/Screen';
 import Row from 'react-native-web-ui-components/Row';
 import { days } from '../../utils';
@@ -184,14 +184,15 @@ const useOnChange = ({
   timesAttribute,
 }) => (propertyValue, propertyName, params = {}) => {
   if (propertyName !== name) {
+    const nextValue = cloneDeep(value.current);
     const path = propertyName.split('.');
     const [key] = path.splice(-1, 1);
     const index = parseInt(path.splice(-1, 1)[0], 10);
-    while (value.length <= index) {
-      value.push({ [dateAttribute]: null, [timesAttribute]: '' });
+    while (nextValue.length <= index) {
+      nextValue.push({ [dateAttribute]: null, [timesAttribute]: '' });
     }
-    value[index][key] = propertyValue; // eslint-disable-line
-    onChange(scheduleParser(value), name, {
+    nextValue[index][key] = propertyValue; // eslint-disable-line
+    onChange(scheduleParser(nextValue), name, {
       ...params,
       update: [
         `${name}.${index}.${dateAttribute}`,
@@ -200,7 +201,7 @@ const useOnChange = ({
     });
   } else {
     const update = [];
-    const length = Math.max(propertyValue.length, value.length);
+    const length = Math.max(propertyValue.length, value.current.length);
     for (let i = 0; i < length; i += 1) {
       update.push(`${name}.${i}.${dateAttribute}`);
       update.push(`${name}.${i}.${timesAttribute}`);
@@ -215,13 +216,16 @@ const useOnChange = ({
 const ScheduleWidget = (props) => {
   const params = getProps(props);
 
+  const value = useRef();
+  value.current = params.value;
+
   const dateParser = useDateParser(params);
   const checkboxParser = useCheckboxParser(params);
 
   const { checkbox, propertySchema, propertyUiSchema } = params;
   const scheduleParser = checkbox ? checkboxParser : dateParser;
 
-  const onChange = useOnChange({ ...params, scheduleParser });
+  const onChange = useOnChange({ ...params, value, scheduleParser });
 
   const hasTitle = params.uiSchema['ui:title'] !== false;
 
