@@ -284,7 +284,6 @@ class JsonSchemaForm extends React.Component {
     this.run(onChange(event), () => {
       if (!event.isDefaultPrevented()) {
         const { path } = event.params;
-        console.log(event.params.value, 'onChange');
         set(event.params.values, path, event.params.value);
         if (event.params.nextMeta !== false) {
           set(metas, path, event.params.nextMeta);
