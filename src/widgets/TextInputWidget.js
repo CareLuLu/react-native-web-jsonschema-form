@@ -144,13 +144,6 @@ class TextInputWidget extends React.Component {
     this.input = input;
   };
 
-  onKeyPress = (event) => {
-    const { key } = event.nativeEvent;
-    if (key === 'ArrowUp' || key === 'ArrowDown') {
-      this.scrolled = true;
-    }
-  };
-
   onChangeText = (nextText) => {
     const { onChangeText } = this.props;
     const nextValue = this.parse(nextText);
@@ -161,10 +154,6 @@ class TextInputWidget extends React.Component {
     this.setText(nextTextValue);
   };
 
-  onContentSizeChange = () => {
-    this.scrolled = true;
-  };
-
   onBlur = (...args) => {
     const {
       name,
@@ -172,26 +161,20 @@ class TextInputWidget extends React.Component {
       onBlur,
       onChange,
       changeOnBlur,
-      multiline,
     } = this.props;
 
-    if (this.scrolled && Platform.OS === 'web' && this.input && multiline) {
-      this.input.focus();
-    } else {
-      this.setState({ autoFocus: false });
-      const { text } = this.state;
-      const nextValue = this.parse(text);
-      if (onBlur) {
-        onBlur(...args);
-      }
-      if (changeOnBlur && nextValue !== value) {
-        onChange(nextValue, name);
-      }
+    this.setState({ autoFocus: false });
+    const { text } = this.state;
+    const nextValue = this.parse(text);
+    if (onBlur) {
+      onBlur(...args);
+    }
+    if (changeOnBlur && nextValue !== value) {
+      onChange(nextValue, name);
     }
   };
 
   onFocus = (...args) => {
-    this.scrolled = false;
     this.setState({ autoFocus: true });
     const { onFocus } = this.props;
     if (onFocus) {
