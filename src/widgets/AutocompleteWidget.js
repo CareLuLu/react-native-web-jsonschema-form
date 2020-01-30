@@ -62,6 +62,8 @@ const AutocompleteWidget = (props) => {
   );
 };
 
+AutocompleteWidget.hideable = false;
+
 AutocompleteWidget.propTypes = {
   name: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,

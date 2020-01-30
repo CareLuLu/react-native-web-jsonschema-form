@@ -158,10 +158,10 @@ class AbstractField extends React.Component {
     const Widget = this.cache;
     const hasError = (
       schema.type !== 'object'
-      && schema.type !== 'array'
+      && (schema.type !== 'array' || Widget.hideable === false)
       && isArray(errors)
       && errors.length > 0
-      && !errors.hidden
+      && (!errors.hidden || Widget.hideable === false)
     );
     if (hasError && errors.lastValue === undefined) {
       errors.lastValue = value;

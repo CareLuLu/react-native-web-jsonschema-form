@@ -113,6 +113,8 @@ const TagInputWidget = (props) => {
   );
 };
 
+TagInputWidget.hideable = false;
+
 TagInputWidget.propTypes = {
   name: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
