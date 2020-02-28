@@ -15,20 +15,20 @@
   "license": "MIT",
   "devDependencies": {
     "@babel/cli": "7.8.4",
-    "@babel/core": "7.8.4",
+    "@babel/core": "7.8.6",
     "@babel/plugin-proposal-class-properties": "7.8.3",
     "@babel/plugin-transform-react-jsx": "7.8.3",
-    "@babel/register": "7.8.3",
-    "babel-eslint": "10.0.3",
+    "@babel/register": "7.8.6",
+    "babel-eslint": "10.1.0",
     "babel-plugin-lodash": "3.3.4",
     "cloc": "2.5.1",
     "eslint": "6.8.0",
     "eslint-config-airbnb": "18.0.1",
     "eslint-plugin-import": "2.20.1",
-    "eslint-plugin-json": "2.0.1",
+    "eslint-plugin-json": "2.1.0",
     "eslint-plugin-jsx-a11y": "6.2.3",
     "eslint-plugin-react": "7.18.3",
-    "eslint-plugin-react-hooks": "2.3.0"
+    "eslint-plugin-react-hooks": "2.5.0"
   },
   "dependencies": {
     "lodash": "^4.17.11",
