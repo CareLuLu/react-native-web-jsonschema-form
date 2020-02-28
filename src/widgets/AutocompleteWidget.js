@@ -5,6 +5,7 @@ import Autocomplete from 'react-native-web-ui-components/Autocomplete';
 import TextInputWidget from './TextInputWidget';
 
 const allowedAttributes = [
+  'allowEmpty',
   'items',
   'getItemValue',
   'onSelect',
