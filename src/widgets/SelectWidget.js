@@ -13,7 +13,7 @@ const parser = ({ schema }) => (value) => {
       parsedValue = null;
     }
   } else if (schema.type === 'boolean') {
-    parsedValue = value === 'true';
+    parsedValue = value;
   }
   return parsedValue;
 };
@@ -49,8 +49,8 @@ const SelectWidget = (props) => {
       hasError={hasError}
       auto={auto}
       name={name}
-      value={value === null || value === undefined ? '' : `${value}`}
-      values={values.map(v => `${v}`)}
+      value={value}
+      values={values}
       labels={labels}
       onChange={onChange}
       placeholder={placeholder}
