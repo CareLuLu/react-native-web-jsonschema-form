@@ -40,6 +40,7 @@ class TextWidget extends React.Component {
   static propTypes = {
     theme: PropTypes.shape().isRequired,
     name: PropTypes.string.isRequired,
+    customName: PropTypes.func,
     onChange: PropTypes.func.isRequired,
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     to: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
@@ -60,6 +61,7 @@ class TextWidget extends React.Component {
     value: null,
     to: null,
     auto: false,
+    customName: null,
     style: null,
     textStyle: null,
     textContainerStyle: null,
@@ -137,6 +139,7 @@ class TextWidget extends React.Component {
       SaveComponent,
       CancelComponent,
       children,
+      customName,
     } = this.props;
     const { editing, displayValue, value } = this.state;
     let href = null;
@@ -194,7 +197,9 @@ class TextWidget extends React.Component {
                     textStyle,
                   ]}
                 >
-                  {value !== null && value !== undefined ? value : ''}
+                  {
+                    (value !== null && value !== undefined) ? (customName ? customName(value) : value) : '' // eslint-disable-line
+                  }
                 </Link>
               )}
               {this.renderChildren(children)}
