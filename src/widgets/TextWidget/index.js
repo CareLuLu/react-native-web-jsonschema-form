@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
+import { omit } from 'lodash';
 import View from 'react-native-web-ui-components/View';
 import Text from 'react-native-web-ui-components/Text';
 import Link from 'react-native-web-ui-components/Link';
@@ -159,7 +160,7 @@ class TextWidget extends React.Component {
           <React.Fragment>
             <View style={[auto ? null : styles.main, inputContainerStyle]}>
               <TextInputWidget
-                {...this.props}
+                {...omit(this.props, 'textParser')}
                 auto
                 style={[styles.fullWidth, inputStyle]}
                 value={displayValue}
@@ -197,7 +198,7 @@ class TextWidget extends React.Component {
                     textStyle,
                   ]}
                 >
-                  {textParser(value)}
+                  {textParser(value, this.props)}
                 </Link>
               )}
               {this.renderChildren(children)}
