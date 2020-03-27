@@ -392,7 +392,15 @@ const maskOptions = {
 };
 
 export const formatMask = (value, mask) => {
-  const text = (value === null || value === undefined) ? '' : `${value}`;
+  let text = (value === null || value === undefined) ? '' : `${value}`;
+
+  if (mask === '(999) 999-9999') {
+    if (text.indexOf('-') || text.indexOf(' ')) {
+      // remove hyphen and space characters
+      text = text.replace('-', '').replace(' ', '');
+    }
+  }
+
   let result = '';
   let cursorText = 0;
   let cursorMask = 0;
