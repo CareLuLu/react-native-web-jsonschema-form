@@ -391,8 +391,11 @@ const maskOptions = {
   '*': /^.$/,
 };
 
-export const formatMask = (value, mask) => {
-  const text = (value === null || value === undefined) ? '' : `${value}`;
+const defaultParser = value => ((value === null || value === undefined) ? '' : `${value}`);
+
+export const formatMask = (value, mask, maskParser) => {
+  const parse = maskParser || defaultParser;
+  const text = parse(value);
   let result = '';
   let cursorText = 0;
   let cursorMask = 0;
