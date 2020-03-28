@@ -18,11 +18,11 @@ const styles = StyleSheet.create({
   },
 });
 
-const getTextValue = ({ mask, value }) => {
+const getTextValue = ({ mask, value, maskParser }) => {
   let textValue = '';
   if (value !== null && value !== undefined) {
     if (isString(mask)) {
-      textValue = formatMask(`${value}`, mask);
+      textValue = formatMask(`${value}`, mask, maskParser);
     } else if (isFunction(mask)) {
       textValue = mask(`${value}`, 'in');
     } else {
@@ -61,6 +61,7 @@ class TextInputWidget extends React.Component {
     onChangeText: PropTypes.func,
     register: PropTypes.func,
     changeOnBlur: PropTypes.bool,
+    maskParser: PropTypes.func,
   };
 
   static defaultProps = {
@@ -86,6 +87,7 @@ class TextInputWidget extends React.Component {
     onChangeText: null,
     register: noop,
     changeOnBlur: true,
+    maskParser: null,
   };
 
   static getDerivedStateFromProps(nextProps, prevState) {
@@ -128,14 +130,14 @@ class TextInputWidget extends React.Component {
   }
 
   parse = (text) => {
-    const { mask, textParser } = this.props;
+    const { mask, textParser, maskParser } = this.props;
     if (!mask) {
       return textParser(text);
     }
     if (isFunction(mask)) {
       return textParser(mask(text, 'out'));
     }
-    return textParser(formatMask(text, mask));
+    return textParser(formatMask(text, mask, maskParser));
   };
 
   setText = text => this.setState({ text });

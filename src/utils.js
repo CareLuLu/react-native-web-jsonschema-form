@@ -391,16 +391,11 @@ const maskOptions = {
   '*': /^.$/,
 };
 
-export const formatMask = (value, mask) => {
-  let text = (value === null || value === undefined) ? '' : `${value}`;
+const defaultParser = value => ((value === null || value === undefined) ? '' : `${value}`);
 
-  if (mask === '(999) 999-9999') {
-    if (text.indexOf('-') || text.indexOf(' ')) {
-      // remove hyphen and space characters
-      text = text.replace('-', '').replace(' ', '');
-    }
-  }
-
+export const formatMask = (value, mask, maskParser) => {
+  const parse = maskParser || defaultParser;
+  const text = parse(value);
   let result = '';
   let cursorText = 0;
   let cursorMask = 0;
