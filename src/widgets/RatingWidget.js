@@ -123,20 +123,20 @@ const RatingWidget = (preProps) => {
               cursor: pointer;
             }
             [data-class~="${id}"]:hover [data-class~="Rating__group"] {
-              ${fullCss}
+              ${fullCss.replace(/;/g, '!important;')}
             }
             [data-class~="${id}"]:hover [data-class~="Rating"] {
-              color: inherit;
+              color: inherit !important;
             }
             [data-class~="${id}"] [data-class~="Rating__group"]:hover,
             [data-class~="${id}"] [data-class~="Rating__group"]:hover ~ [data-class~="Rating__group"] {
-              ${emptyCss}
+              ${emptyCss.replace(/;/g, '!important;')}
             }
             [data-class~="${id}"] [data-class~="Rating"]:hover {
-              ${fullCss}
+              ${fullCss.replace(/;/g, '!important;')}
             }
             ${Array(10).fill(0).map((v, i) => `[data-class~="${id}"] [data-class~="Rating__${(2 * i) + 1}"]:hover + [data-class~="Rating__${2 * i}"]`).join(',')} {
-              ${fullCss}
+              ${fullCss.replace(/;/g, '!important;')}
             }
           `}
         </style>
