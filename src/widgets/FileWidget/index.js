@@ -36,6 +36,10 @@ const styles = StyleSheet.create({
   fullWidth: {
     width: '100%',
   },
+  partition: {
+    width: '85%',
+    overflow: 'hidden',
+  },
   auto: {
     marginBottom: 0,
   },
@@ -545,6 +549,26 @@ const useOnClick = ({ propertySchema }) => (event) => {
   }
 };
 
+const getAuto = ({ uiSchema, propertySchema }) => {
+  let auto = false;
+  if (propertySchema.type === 'string') {
+    if (!(uiSchema['ui:widgetProps'] && (uiSchema['ui:widgetProps'].EditComponent || uiSchema['ui:widgetProps'].ProgressComponent))) {
+      auto = true;
+    }
+  }
+  return auto;
+};
+
+const getStyle = ({ fileStyle, uiSchema, propertySchema }) => {
+  const style = [styles.item, fileStyle];
+  if (propertySchema.type === 'string') {
+    if (!(uiSchema['ui:widgetProps'] && (uiSchema['ui:widgetProps'].EditComponent || uiSchema['ui:widgetProps'].ProgressComponent))) {
+      style.push(styles.partition);
+    }
+  }
+  return style;
+};
+
 const FileWidget = (props) => {
   const [dragging, setDragging] = useState(null);
   const params = getProps({ ...props, dragging, setDragging });
@@ -615,11 +639,11 @@ const FileWidget = (props) => {
             <FileArea onAreaClick={onAreaClick} style={styles.containerMultiple}>
               <ArrayWidget
                 {...nextProps}
-                auto={false}
+                auto={getAuto(params)}
                 hasError={hasError}
                 schema={propertySchema}
                 uiSchema={propertyUiSchema}
-                style={[styles.item, fileStyle]}
+                style={getStyle(params)}
                 onClick={onClick}
                 onChange={onChange}
               />
@@ -629,11 +653,11 @@ const FileWidget = (props) => {
             <FileArea onAreaClick={onClick} style={styles.containerSingle}>
               <ObjectWidget
                 {...nextProps}
-                auto={false}
+                auto={getAuto(params)}
                 hasError={hasError}
                 schema={propertySchema}
                 uiSchema={propertyUiSchema}
-                style={[styles.item, fileStyle]}
+                style={getStyle(params)}
                 onChange={onChange}
               />
             </FileArea>
@@ -643,11 +667,11 @@ const FileWidget = (props) => {
               <TextWidget
                 {...nextProps}
                 {...propertyUiSchema['ui:widgetProps']}
-                auto={false}
+                auto={getAuto(params)}
                 hasError={hasError}
                 schema={propertySchema}
                 uiSchema={propertyUiSchema}
-                style={[styles.item, fileStyle]}
+                style={getStyle(params)}
                 onChange={onChange}
               />
             </FileArea>
