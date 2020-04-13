@@ -534,7 +534,10 @@ const useOnAreaClick = ({ dragging }) => (event) => {
 
 const useOnClick = ({ propertySchema }) => (event) => {
   const fn = propertySchema.type === 'array' ? 'preventDefault' : 'stopPropagation';
-  if (event.nativeEvent.target.tagName === 'INPUT') {
+  if (
+    event.nativeEvent.target.tagName === 'INPUT'
+    || event.nativeEvent.target.querySelectorAll('input').length > 0
+  ) {
     event[fn]();
   }
   if (isField(event.nativeEvent.target, handleRegex)) {
