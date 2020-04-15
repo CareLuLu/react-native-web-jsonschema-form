@@ -646,7 +646,6 @@ const FileWidget = (props) => {
               <TextWidget
                 {...nextProps}
                 {...propertyUiSchema['ui:widgetProps']}
-                auto={false}
                 hasError={hasError}
                 schema={propertySchema}
                 uiSchema={propertyUiSchema}
