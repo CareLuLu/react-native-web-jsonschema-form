@@ -7,8 +7,10 @@ import {
   last,
   cloneDeep,
 } from 'lodash';
+import { Helmet, style } from 'react-native-web-ui-components/Helmet';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
 import Dropzone from 'react-native-web-ui-components/Dropzone';
+import Text from 'react-native-web-ui-components/Text';
 import Row from 'react-native-web-ui-components/Row';
 import {
   withPrefix,
@@ -28,6 +30,8 @@ import ProgressHandle from './ProgressHandle';
 let id = 0;
 
 const handleRegex = /__handle( |$)/;
+
+const fileUploadTextId = `__fileUploadText.${Math.random()}`;
 
 const styles = StyleSheet.create({
   defaults: {
@@ -50,6 +54,10 @@ const styles = StyleSheet.create({
   singleLine: {
     minHeight: 0,
     height: 40,
+  },
+  singleLineUpload: {
+    minHeight: 0,
+    height: 65,
   },
   main: {
     flex: 1,
@@ -103,6 +111,8 @@ const getProps = (props) => {
 
   const dropzoneStyle = [];
   let isMultiple = multiple;
+  let uploadText = false;
+  let uploadTextStyle;
   let adjustedNameAttribute;
   let adjustedPathAttribute;
   let fileSchema = schema;
@@ -155,6 +165,8 @@ const getProps = (props) => {
   if (fileSchema.type === 'string') {
     adjustedNameAttribute = '';
     adjustedPathAttribute = '';
+    uploadText = value && get(uiSchema, ['ui:options', 'uploadText'], true);
+    uploadTextStyle = get(uiSchema, ['ui:widgetProps', 'uploadTextStyle']);
   } else if (fileSchema.type === 'object') {
     const strings = Object.keys(fileSchema.properties).filter(k => (fileSchema.properties[k].type === 'string'));
 
@@ -209,7 +221,7 @@ const getProps = (props) => {
     nameUiSchema['ui:widgetProps'].EditComponent = adjustedEditComponent;
     nameUiSchema['ui:widgetProps'].children = adjustedProgressComponent;
     if (schema.type !== 'array' && (nameUiSchema['ui:widget'] === 'text' || nameUiSchema['ui:widget'] === 'hidden')) {
-      dropzoneStyle.push(styles.singleLine);
+      dropzoneStyle.push(uploadText ? styles.singleLineUpload : styles.singleLine);
     }
   } else {
     if (
@@ -238,7 +250,7 @@ const getProps = (props) => {
       (schema.type === 'string' && pathUiSchema['ui:widget'] === 'file')
       || (schema.type === 'object' && pathUiSchema['ui:widget'] === 'text')
     ) {
-      dropzoneStyle.push(styles.singleLine);
+      dropzoneStyle.push(uploadText ? styles.singleLineUpload : styles.singleLine);
     }
   }
 
@@ -284,6 +296,8 @@ const getProps = (props) => {
   return {
     ...props,
     title,
+    uploadText,
+    uploadTextStyle,
     fileSchema,
     dropzoneStyle,
     propertyUiSchema,
@@ -548,6 +562,33 @@ const useOnClick = ({ propertySchema }) => (event) => {
   }
 };
 
+const UploadText = props => (
+  <React.Fragment>
+    <Helmet>
+      <style>
+        {`
+          [data-class~="${fileUploadTextId}"] {
+            display: inline-block;
+            padding-bottom: 4px;
+            cursor: pointer;
+          }
+          [data-class~="${fileUploadTextId}"]:hover {
+            text-decoration: underline;
+          }
+        `}
+      </style>
+    </Helmet>
+    <Text
+      style={styles.upload}
+      className={fileUploadTextId}
+      type="pink"
+      {...props}
+    >
+      Upload
+    </Text>
+  </React.Fragment>
+);
+
 const FileWidget = (props) => {
   const [dragging, setDragging] = useState(null);
   const params = getProps({ ...props, dragging, setDragging });
@@ -564,10 +605,12 @@ const FileWidget = (props) => {
     uiSchema,
     LabelWidget,
     hasError,
-    style,
+    style: _style,
     fileStyle,
     auto,
     dropzoneStyle,
+    uploadText,
+    uploadTextStyle,
     ...nextProps
   } = params;
 
@@ -610,7 +653,7 @@ const FileWidget = (props) => {
           styles.defaults,
           auto ? styles.auto : styles.fullWidth,
           dropzoneStyle,
-          style,
+          _style,
         ]}
       >
         <Row>
@@ -643,16 +686,24 @@ const FileWidget = (props) => {
           ) : null}
           {propertySchema.type === 'string' && nextProps.value ? (
             <FileArea onAreaClick={onClick} style={styles.containerSingle}>
-              <TextWidget
-                {...nextProps}
-                {...propertyUiSchema['ui:widgetProps']}
-                auto={false}
-                hasError={hasError}
-                schema={propertySchema}
-                uiSchema={propertyUiSchema}
-                style={[styles.item, fileStyle]}
-                onChange={onChange}
-              />
+              <React.Fragment>
+                {uploadText ? (
+                  <UploadText
+                    style={uploadTextStyle}
+                    auto={propertyUiSchema['ui:inline']}
+                  />
+                ) : null}
+                <TextWidget
+                  {...nextProps}
+                  {...propertyUiSchema['ui:widgetProps']}
+                  auto={false}
+                  hasError={hasError}
+                  schema={propertySchema}
+                  uiSchema={propertyUiSchema}
+                  style={[styles.item, fileStyle]}
+                  onChange={onChange}
+                />
+              </React.Fragment>
             </FileArea>
           ) : null}
         </Row>
