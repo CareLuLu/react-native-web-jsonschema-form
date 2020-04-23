@@ -80,6 +80,8 @@ const getUiSchemaPick = (schema, uiSchema) => {
       pick[requiredIndex] = schema.required;
       pick = uniq(flatten(pick));
     }
+  } else {
+    pick = Object.keys(schema.properties);
   }
   return pick;
 };
