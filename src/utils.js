@@ -73,7 +73,7 @@ const getUiSchemaPick = (schema, uiSchema) => {
   let pick = uiSchema['ui:pick'] || [];
   if (pick === 'required') {
     pick = schema.required;
-  } else if (pick) {
+  } else if (pick && pick.length) {
     const requiredIndex = indexOf(pick, '*required');
     if (requiredIndex >= 0) {
       pick = pick.concat([]);
