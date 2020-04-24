@@ -24,6 +24,8 @@ import DraggableItem from './DraggableItem';
 
 /* eslint react/no-array-index-key: 0 */
 
+const uiTitleRegex = /\.ui_/;
+
 const getItem = (schema) => {
   let newItem = '';
   if (schema.items.type === 'object') {
@@ -65,11 +67,13 @@ const adjustUiSchema = (possibleUiSchema, i, props) => {
 const getProps = (props) => {
   const {
     name,
-    value,
     schema,
     fields,
     uiSchema,
+    value: originalValue,
   } = props;
+
+  const value = isArray(originalValue) ? originalValue : [];
 
   const screenType = Screen.getType();
   const title = getTitle(uiSchema['ui:title'] || FIELD_TITLE, {
@@ -77,12 +81,14 @@ const getProps = (props) => {
     value,
     key: last(name.split('.')),
   });
+
   const propertySchema = schema.items;
   const propertyUiSchema = uiSchema.items;
   const PropertyField = getComponent(propertySchema.type, 'Field', fields);
   const options = uiSchema['ui:options'] || {};
 
   const extraProps = {
+    value,
     title,
     screenType,
     propertySchema,
@@ -244,7 +250,7 @@ const ArrayWidget = (props) => {
           reorder={reorder}
           onRemove={onRemove}
           onItemRef={onItemRef}
-          propertyName={`${name}.title`}
+          propertyName={`${name}.ui_title`}
           propertyValue={getItem(schema)}
           propertyErrors={{}}
           propertyMeta={getItem(schema) || {}}
@@ -253,6 +259,7 @@ const ArrayWidget = (props) => {
           zIndex={1}
           Item={ItemComponent}
           titleOnly
+          noTitle={false}
         />
       ) : null}
       {times(value.length, (index) => {
@@ -297,7 +304,7 @@ const ArrayWidget = (props) => {
           />
         );
       })}
-      {addable ? (
+      {addable && !uiTitleRegex.test(name) ? (
         <AddComponent {...params} onPress={onAdd} addLabel={addLabel} />
       ) : null}
     </React.Fragment>
