@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet } from 'react-native';
-import { get, omit } from 'lodash';
+import { get, omit, isArray } from 'lodash';
 import RNDraggable from 'react-native-web-ui-components/Draggable';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
 import getItemPosition from './getItemPosition';
@@ -65,10 +65,10 @@ const useOnDragEnd = ({
   positions,
 }) => async ({ y, x }) => {
   if (y !== 0 || x !== 0) {
-    let nextValue = value;
-    let nextMeta = meta;
-    let nextErrors = errors;
-    if (value.length > 1) {
+    let nextValue = (isArray(value) ? value : []);
+    let nextMeta = (isArray(meta) ? meta : []);
+    let nextErrors = (isArray(errors) ? errors : []);
+    if (nextValue.length > 1) {
       let position = positions[index];
       if (!position) {
         position = await getItemPosition(refs[index]);
@@ -85,20 +85,20 @@ const useOnDragEnd = ({
         position,
         index,
         0,
-        value.length - 1,
+        nextValue.length - 1,
         refs,
         positions,
       );
 
-      const itemValue = value[index];
-      nextValue = value.filter((v, i) => (i !== index));
+      const itemValue = nextValue[index];
+      nextValue = nextValue.filter((v, i) => (i !== index));
       nextValue.splice(nextIndex, 0, itemValue);
-      if (meta) {
+      if (nextMeta) {
         const itemMeta = nextMeta[index];
         nextMeta = nextMeta.filter((v, i) => (i !== index));
         nextMeta.splice(nextIndex, 0, itemMeta);
       }
-      if (errors) {
+      if (nextErrors) {
         const itemError = nextErrors[index];
         nextErrors = nextErrors.filter((v, i) => (i !== index));
         nextErrors.splice(nextIndex, 0, itemError);

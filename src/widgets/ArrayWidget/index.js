@@ -149,13 +149,13 @@ const useOnRemove = ({
   errors,
   meta,
 }) => (index) => {
-  const nextValue = value.filter((v, i) => (i !== index));
-  let nextMeta = meta;
-  if (meta) {
+  const nextValue = (isArray(value) ? value : []).filter((v, i) => (i !== index));
+  let nextMeta = (isArray(meta) ? meta : []);
+  if (nextMeta) {
     nextMeta = nextMeta.filter((v, i) => (i !== index));
   }
-  let nextErrors = errors;
-  if (errors) {
+  let nextErrors = (isArray(errors) ? errors : []);
+  if (nextErrors) {
     nextErrors = nextErrors.filter((v, i) => (i !== index));
   }
   onChange(nextValue, name, {

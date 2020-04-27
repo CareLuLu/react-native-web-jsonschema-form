@@ -62,6 +62,7 @@ class TextInputWidget extends React.Component {
     register: PropTypes.func,
     changeOnBlur: PropTypes.bool,
     maskParser: PropTypes.func,
+    scroller: PropTypes.shape(),
   };
 
   static defaultProps = {
@@ -88,6 +89,7 @@ class TextInputWidget extends React.Component {
     register: noop,
     changeOnBlur: true,
     maskParser: null,
+    scroller: null,
   };
 
   static getDerivedStateFromProps(nextProps, prevState) {
@@ -225,6 +227,7 @@ class TextInputWidget extends React.Component {
       register,
       uiSchema,
       mask,
+      scroller,
     } = this.props;
 
     const { text, autoFocus } = this.state;
@@ -246,6 +249,7 @@ class TextInputWidget extends React.Component {
     return (
       <Input
         key={name}
+        scroller={scroller}
         hasError={hasError}
         disabled={disabled}
         readonly={readonly}
