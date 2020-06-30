@@ -38,7 +38,7 @@
   "peerDependencies": {
     "react": "^16.8.3",
     "react-native": "*",
-    "react-native-web-ui-components": "^1.2.0 || ^2.2.0"
+    "react-native-web-ui-components": "^1.2.0 || ^2.2.0 || ^3.0.0"
   },
   "browserslist": [
     ">0.2%",
