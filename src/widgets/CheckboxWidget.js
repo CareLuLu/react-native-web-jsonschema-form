@@ -8,7 +8,7 @@ import { useAutoFocus } from '../utils';
 
 const styles = StyleSheet.create({
   defaults: {
-    height: 40,
+    minHeight: 40,
     borderWidth: 1,
     borderColor: 'transparent',
     flexDirection: 'row',
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   alone: {
-    height: 23,
+    minHeight: 23,
   },
   adjustTitle: {
     marginTop: 20,
