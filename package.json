@@ -1,10 +1,10 @@
 {
   "name": "react-native-web-jsonschema-form",
-  "version": "2.2.4",
+  "version": "3.0.0",
   "private": false,
   "main": "index.js",
   "scripts": {
-    "build": "rm -rf dist && babel src -d dist && cp package.json dist/package.json && cp README.md dist/README.md",
+    "build": "rm -rf dist && babel src -d dist && cp package.json dist/package.json && cp README.md dist/README.md && rm -rf ../../app/node_modules/react-native-web-jsonschema-form && cp -r dist ../../app/node_modules/react-native-web-jsonschema-form",
     "build:windows": "rmdir /s /q dist && babel src -d dist && xcopy package.json dist\\package.json && xcopy README.md dist/README.md",
     "lint": "eslint ./src -c ./.eslintrc --ext .js",
     "cloc:src": "yarn cloc ./src",
@@ -42,7 +42,7 @@
   "peerDependencies": {
     "react": "^16.8.3",
     "react-native": "*",
-    "react-native-web-ui-components": "^1.2.0 || ^2.2.0 || ^3.0.0"
+    "react-native-web-ui-components": "^3.0.0"
   },
   "browserslist": [
     ">0.2%",

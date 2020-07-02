@@ -88,9 +88,7 @@ const DateWidget = (props) => {
       date={date}
       onDateChange={onWrappedChange}
       placeholder={placeholder}
-      customStyles={{
-        input: css,
-      }}
+      style={css}
       showCalendarOnFocus={showCalendarOnFocus}
       css={`
         .react-datepicker__input-container input.${className} {
