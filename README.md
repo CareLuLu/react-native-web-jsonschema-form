@@ -8,6 +8,10 @@ Render customizable forms using [JSON schema](http://json-schema.org/) for respo
 
 See this library in production at https://www.carelulu.com
 
+## Examples
+1. Form validation: https://github.com/CareLuLu/react-native-web-jsonschema-form/issues/139#issuecomment-654377982
+2. Array fields: https://github.com/CareLuLu/react-native-web-jsonschema-form/issues/113#issuecomment-621375353
+
 ## Installation
 
 1) This library is backed by [react-native-web-ui-components](https://www.npmjs.com/package/react-native-web-ui-components), so first make sure you have installed `react-native-web-ui-components` and its dependencies. All inputs and buttons will follow the theme used on your project.
