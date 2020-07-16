@@ -6,7 +6,8 @@
 
 Render customizable forms using [JSON schema](http://json-schema.org/) for responsive websites and [Expo](https://expo.io/) apps (both iOS and Android). This library was inpired on [react-jsonschema-form](https://github.com/mozilla-services/react-jsonschema-form) but was built with [React Native](https://facebook.github.io/react-native/) and [React Native Web](https://github.com/necolas/react-native-web) in mind.
 
-See this library in production at https://www.carelulu.com
+- See this library in production at https://www.carelulu.com
+- Skeleton project using React Native Web Jsonschema Form at https://www.carelulu.com/react-native-web-example/login and https://github.com/CareLuLu/react-native-web-skeleton
 
 ## Examples
 1. Form validation: https://github.com/CareLuLu/react-native-web-jsonschema-form/issues/139#issuecomment-654377982
