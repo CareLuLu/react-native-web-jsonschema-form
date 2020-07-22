@@ -110,7 +110,7 @@ const getProps = (props) => {
         ...get(uiSchema, ['items', timesAttribute], {}),
         'ui:title': false,
         'ui:widget': 'timeRange',
-        'ui:widgetProps': times(7, i => ({
+        'ui:widgetProps': times(100, i => ({
           ...get(uiSchema, ['items', timesAttribute, 'ui:widgetProps'], {}),
           encoder: 'string',
           header: i === 0,
