@@ -114,7 +114,7 @@ const getProps = (props) => {
           ...get(uiSchema, ['items', timesAttribute, 'ui:widgetProps'], {}),
           encoder: 'string',
           header: i === 0,
-          disabled: checkbox && !adjustedValue[i][dateAttribute],
+          disabled: checkbox && !get(adjustedValue, [i, dateAttribute]),
           filterTime: time => filterTime(time, get(value, i, {})),
         })),
         'ui:containerProps': {
