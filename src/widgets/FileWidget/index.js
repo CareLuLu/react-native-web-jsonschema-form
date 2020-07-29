@@ -538,14 +538,16 @@ const useOnMeta = ({
   return anchor;
 };
 
-const useOnDrop = ({
-  onDrop,
-  onMeta,
-  onAccepted,
-  fileSchema,
-  nameAttribute,
-  pathAttribute,
-}) => {
+const useOnDrop = (props) => {
+  const {
+    onDrop,
+    onMeta,
+    onAccepted,
+    fileSchema,
+    nameAttribute,
+    pathAttribute,
+  } = props;
+
   const anchor = useRef();
   anchor.current = (files) => {
     if (files.length) {
@@ -564,7 +566,7 @@ const useOnDrop = ({
           setError: error => onMeta.current(fileId, { error }),
         };
       });
-      onDrop(nextFiles, onAccepted);
+      onDrop(nextFiles, onAccepted, props);
     }
   };
   return anchor;
