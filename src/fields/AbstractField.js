@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
-import { last, isArray } from 'lodash';
+import { last, isArray, isString } from 'lodash';
 import Row from 'react-native-web-ui-components/Row';
 import View from 'react-native-web-ui-components/View';
 import {
@@ -67,12 +67,12 @@ class AbstractField extends React.Component {
   }
 
   renderErrors() {
-    const {
-      errors,
-      widgets,
-      uiSchema,
-    } = this.props;
+    let { errors } = this.props;
+    const { widgets, uiSchema } = this.props;
+
     const { ErrorWidget } = widgets;
+
+    errors = errors.filter(error => isString(error));
     return errors.map((error, i) => (
       <ErrorWidget
         uiSchema={uiSchema}

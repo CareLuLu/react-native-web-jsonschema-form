@@ -24,6 +24,7 @@ const FIELD_KEY_REGEX = /%key%/g;
 const FIELD_NAME_REGEX = /%name%/g;
 const FIELD_VALUE_REGEX = /%value%/g;
 const FIELD_TITLE_REGEX = /%title%/g;
+const ORIGINAL_VALUES_REGEX = /__originalValues/;
 
 /* eslint no-param-reassign: 0 */
 
@@ -242,7 +243,7 @@ export const merge = (destination, source = {}) => {
   return destination;
 };
 
-export const getValues = (data, schema, key, casting = true, uiSchema = false) => {
+export const getValues = (data, schema, key, casting = true, uiSchema = false, errors = false) => {
   let value = key ? get(data, key) : data;
   if (schema.type === 'object') {
     value = isPlainObject(value) ? value : {};
@@ -254,10 +255,14 @@ export const getValues = (data, schema, key, casting = true, uiSchema = false) =
         propertyKey,
         casting,
         uiSchema && uiSchema[propertyKey],
+        errors,
       );
     });
     if (uiSchema) {
       value['ui:disabled'] = (uiSchema && uiSchema['ui:disabled']) || false;
+    }
+    if (errors) {
+      node.__originalValues = value; // eslint-disable-line
     }
     return node;
   }
@@ -266,13 +271,19 @@ export const getValues = (data, schema, key, casting = true, uiSchema = false) =
     if (uiSchema) {
       value['ui:disabled'] = (uiSchema && uiSchema['ui:disabled']) || false;
     }
-    return value.map(item => getValues(
+    const values = value.map(item => getValues(
       item,
       schema.items,
       null,
       casting,
       uiSchema && uiSchema.items,
+      errors,
     ));
+
+    if (errors) {
+      values.__originalValues = value; // eslint-disable-line
+    }
+    return values;
   }
   if (casting) {
     if (value === null || value === undefined) {
@@ -307,13 +318,19 @@ export const getValues = (data, schema, key, casting = true, uiSchema = false) =
 
 export const getMetas = (data, schema, uiSchema) => getValues(data, schema, null, false, uiSchema);
 
-export const getErrors = (data, schema, key) => getValues(data, schema, key, false);
+export const getErrors = (data, schema, key) => getValues(data, schema, key, false, false, true);
 
 export const withPrefix = (key, prefix) => (prefix ? `${prefix}.${key}` : key);
 
 export const getExceptions = (errorSchema, errors, path = '') => {
   const exceptions = {};
-  if (isArray(errorSchema) && errorSchema.length && isString(errorSchema[0]) && !errors) {
+  if (
+    isArray(errorSchema)
+    && errorSchema.length
+    && isString(errorSchema[0])
+    && !errors
+    && !ORIGINAL_VALUES_REGEX.test(path)
+  ) {
     exceptions[path] = errorSchema;
   } else if (isPlainObject(errorSchema) || isArray(errorSchema)) {
     each(errorSchema, (v, k) => Object.assign(
