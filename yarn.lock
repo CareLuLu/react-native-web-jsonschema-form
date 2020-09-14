@@ -801,10 +801,10 @@ class-utils@^0.3.5:
     isobject "^3.0.0"
     static-extend "^0.1.1"
 
-cloc@2.6.0:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/cloc/-/cloc-2.6.0.tgz#e55d62d87bf2ca302dcfb61625688d59d33ad318"
-  integrity sha512-4AXPnQGEmiaJeAakd03SZaMi8HjHN4vAMdk3edOglpJVOwJoYOEahamWl4MMGy6VUL476DRXXIcrgUyaDLg7kg==
+cloc@2.7.0:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/cloc/-/cloc-2.7.0.tgz#203b1d77f92a490da277d42378d3cf0d7ce354cf"
+  integrity sha512-oYzWIKkf4NoBnAgRcSEEKT0RUI0S9ZYeyAPSgcAQPT/bnG6m8Kkzrguhjy3Q218o6uWPoGdhT5cmtdxL4gpTYQ==
 
 code-point-at@^1.0.0:
   version "1.1.0"
