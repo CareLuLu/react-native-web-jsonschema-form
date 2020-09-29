@@ -22,7 +22,6 @@ Render customizable forms using [JSON schema](http://json-schema.org/) for respo
   * [Form Validation](#form-validation)
   * [Array Fields](#array-fields)
 * [Props](#props)
-* [Widgets](#widgets)
 * [License](#license)
 
 ## Documentation
@@ -279,7 +278,7 @@ See https://github.com/CareLuLu/react-native-web-jsonschema-form/issues/139#issu
 
 See https://github.com/CareLuLu/react-native-web-jsonschema-form/issues/113#issuecomment-621375353.
 
-### Props
+## Props
 
 The `Form` has the following props:
 
@@ -324,3 +323,7 @@ const Example = ({
   <Form {...}/>
 )
 ```
+
+## License
+
+MIT
