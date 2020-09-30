@@ -1,9 +1,22 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { StyleSheet } from 'react-native';
 import { isArray, isNaN, without } from 'lodash';
 import Select from 'react-native-web-ui-components/Select';
 import StylePropType from 'react-native-web-ui-components/StylePropType';
 import { useOnChange, useAutoFocus } from '../utils';
+
+const styles = StyleSheet.create({
+  defaults: {
+    marginBottom: 10,
+  },
+  fullWidth: {
+    width: '100%',
+  },
+  auto: {
+    marginBottom: 0,
+  },
+});
 
 const parser = ({ schema }) => (value) => {
   let parsedValue = value;
@@ -41,6 +54,12 @@ const SelectWidget = (props) => {
   }
   const labels = uiSchema['ui:enumNames'] || schema.enumNames || values;
 
+  const currentStyle = [
+    styles.defaults,
+    auto ? styles.auto : styles.fullWidth,
+    style,
+  ];
+
   return (
     <Select
       {...autoFocusParams}
@@ -54,7 +73,7 @@ const SelectWidget = (props) => {
       labels={labels}
       onChange={onChange}
       placeholder={placeholder}
-      containerStyle={style}
+      style={currentStyle}
     />
   );
 };
