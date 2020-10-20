@@ -40,7 +40,7 @@
     "underscore.string": "^3.3.5"
   },
   "peerDependencies": {
-    "react": "^16.8.3",
+    "react": "^16.8.3 || ^17.0.0",
     "react-native": "*",
     "react-native-web-ui-components": "^3.0.0 || ^4.0.0"
   },
