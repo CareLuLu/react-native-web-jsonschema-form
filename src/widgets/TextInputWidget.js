@@ -123,6 +123,8 @@ class TextInputWidget extends React.Component {
       end: text.length,
     };
 
+    this.autofillChecked = false;
+
     this.state = {
       text,
       valueProp: value,
@@ -149,11 +151,15 @@ class TextInputWidget extends React.Component {
   };
 
   onChangeText = (nextText) => {
-    const { onChangeText } = this.props;
+    const { name, onChangeText, onChange } = this.props;
     const nextValue = this.parse(nextText);
     const nextTextValue = getTextValue({ ...this.props, value: nextValue });
     if (onChangeText) {
       onChangeText(nextTextValue);
+    }
+    if (!this.autofillChecked) {
+      this.autofillChecked = true;
+      onChange(nextTextValue, name);
     }
     this.setText(nextTextValue);
   };
