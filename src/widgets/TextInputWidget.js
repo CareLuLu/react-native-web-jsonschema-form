@@ -123,7 +123,7 @@ class TextInputWidget extends React.Component {
       end: text.length,
     };
 
-    this.autofillChecked = false;
+    this.focused = false;
 
     this.state = {
       text,
@@ -157,10 +157,12 @@ class TextInputWidget extends React.Component {
     if (onChangeText) {
       onChangeText(nextTextValue);
     }
-    if (!this.autofillChecked) {
-      this.autofillChecked = true;
-      onChange(nextTextValue, name);
+
+    // Check for unsolicited autofill.
+    if (!this.focused) {
+      onChange(nextValue, name);
     }
+
     this.setText(nextTextValue);
   };
 
@@ -173,6 +175,7 @@ class TextInputWidget extends React.Component {
       changeOnBlur,
     } = this.props;
 
+    this.focused = false;
     this.setState({ autoFocus: false });
     const { text } = this.state;
     const nextValue = this.parse(text);
@@ -185,6 +188,7 @@ class TextInputWidget extends React.Component {
   };
 
   onFocus = (...args) => {
+    this.focused = true;
     this.setState({ autoFocus: true });
     const { onFocus } = this.props;
     if (onFocus) {
