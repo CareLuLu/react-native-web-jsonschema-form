@@ -354,6 +354,20 @@ export const getTitle = (format, params = {}) => {
   return title;
 };
 
+export const getTitleFormat = (schema, uiSchema) => {
+  let format = uiSchema['ui:title'];
+  if (format === undefined) {
+    format = schema.title;
+  }
+  if (format === undefined && schema.type !== 'object') {
+    format = FIELD_TITLE;
+  }
+  if (format === undefined) {
+    format = false;
+  }
+  return format;
+};
+
 export const ucfirst = (text) => {
   if (!text) {
     return '';

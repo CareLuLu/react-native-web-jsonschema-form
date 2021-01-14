@@ -7,7 +7,7 @@ import View from 'react-native-web-ui-components/View';
 import {
   getComponent,
   getTitle,
-  FIELD_TITLE,
+  getTitleFormat,
   toPath,
 } from '../utils';
 import ArrayWidget from '../widgets/ArrayWidget';
@@ -97,17 +97,19 @@ class AbstractField extends React.Component {
       noTitle,
       required,
     } = this.props;
+
+    const titleFormat = getTitleFormat(schema, uiSchema);
+
     const hasTitle = !(
       noTitle
-      || uiSchema['ui:title'] === false
-      || schema.type === 'object'
+      || titleFormat === false
       || this.cache === ArrayWidget
     );
     if (!uiSchema['ui:toggleable'] && !hasTitle) {
       return null;
     }
     const { LabelWidget } = widgets;
-    let title = getTitle(uiSchema['ui:title'] || FIELD_TITLE, params);
+    let title = getTitle(titleFormat, params);
     if (required[toPath(name, '[]')]) {
       title += '*';
     }

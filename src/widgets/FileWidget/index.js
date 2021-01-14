@@ -14,9 +14,9 @@ import View from 'react-native-web-ui-components/View';
 import {
   withPrefix,
   getTitle,
+  getTitleFormat,
   isField,
   toPath,
-  FIELD_TITLE,
 } from '../../utils';
 import ArrayWidget from '../ArrayWidget';
 import ObjectWidget from '../ObjectWidget';
@@ -302,7 +302,7 @@ const getProps = (props) => {
   let title = false;
   if (schema.type === 'array') {
     if (uiSchema['ui:title'] !== false) {
-      title = getTitle(uiSchema['ui:title'] || FIELD_TITLE, {
+      title = getTitle(getTitleFormat(schema, uiSchema), {
         name,
         value,
         key: last(name.split('.')),

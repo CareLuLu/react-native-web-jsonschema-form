@@ -12,8 +12,8 @@ import Screen from 'react-native-web-ui-components/Screen';
 import Icon from 'react-native-web-ui-components/Icon';
 import {
   getTitle,
+  getTitleFormat,
   getComponent,
-  FIELD_TITLE,
 } from '../../utils';
 import getItemPosition from './getItemPosition';
 import AddHandle from './AddHandle';
@@ -76,7 +76,7 @@ const getProps = (props) => {
   const value = isArray(originalValue) ? originalValue : [];
 
   const screenType = Screen.getType();
-  const title = getTitle(uiSchema['ui:title'] || FIELD_TITLE, {
+  const title = getTitle(getTitleFormat(schema, uiSchema), {
     name,
     value,
     key: last(name.split('.')),
