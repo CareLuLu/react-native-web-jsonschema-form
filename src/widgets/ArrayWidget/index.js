@@ -100,7 +100,7 @@ const getProps = (props) => {
       || options.minimumNumberOfItems === null
     ) ? 1 : options.minimumNumberOfItems,
     addLabel: options.addLabel || `Add ${formatTitle(title)}`,
-    removeLabel: options.removeLabel || 'Remove',
+    removeLabel: options.removeLabel || 'Delete',
     orderLabel: options.orderLabel || <Icon name="th" />,
     removeStyle: options.removeStyle,
     orderStyle: options.orderStyle,

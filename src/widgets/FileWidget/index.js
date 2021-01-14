@@ -72,6 +72,11 @@ const styles = StyleSheet.create({
   singleLine: {
     minHeight: 40,
   },
+  removeSingle: {
+    paddingLeft: 5,
+    paddingRight: 3,
+    paddingTop: 6,
+  },
   uploadSingle: {
     paddingLeft: 5,
   },
@@ -113,7 +118,10 @@ const getProps = (props) => {
     downloadBasepath,
     EditComponent,
     ProgressComponent,
+    RemoveComponent,
     UploadComponent,
+    removeLabel,
+    removeStyle,
     uploadLabel,
     uploadStyle,
   } = props;
@@ -132,7 +140,10 @@ const getProps = (props) => {
   let adjustedDownloadBasepath = downloadBasepath;
   let adjustedEditComponent = EditComponent;
   let adjustedProgressComponent = ProgressComponent;
+  let adjustedRemoveComponent = RemoveComponent;
   let adjustedUploadComponent = UploadComponent;
+  let adjustedRemoveStyle = removeStyle;
+  let adjustedRemoveLabel = removeLabel;
   let adjustedUploadStyle = uploadStyle;
   let adjustedUploadLabel = uploadLabel;
 
@@ -142,9 +153,21 @@ const getProps = (props) => {
     baseUiSchemaPath = 'items';
     pathUiSchemaPath = 'items';
     nameUiSchemaPath = 'items';
+    adjustedRemoveComponent = (
+      adjustedRemoveComponent
+      || (uiSchema['ui:options'] && uiSchema['ui:options'].RemoveComponent)
+    );
     adjustedUploadComponent = (
       adjustedUploadComponent
       || (uiSchema['ui:options'] && uiSchema['ui:options'].UploadComponent)
+    );
+    adjustedRemoveStyle = (
+      adjustedRemoveStyle
+      || (uiSchema['ui:options'] && uiSchema['ui:options'].removeStyle)
+    );
+    adjustedRemoveLabel = (
+      adjustedRemoveLabel
+      || (uiSchema['ui:options'] && uiSchema['ui:options'].removeLabel)
     );
     adjustedUploadStyle = (
       adjustedUploadStyle
@@ -183,8 +206,17 @@ const getProps = (props) => {
   if (adjustedDownloadBasepath === undefined) {
     adjustedDownloadBasepath = '';
   }
+  if (!adjustedRemoveComponent) {
+    adjustedRemoveComponent = RemoveHandle;
+  }
   if (!adjustedUploadComponent) {
     adjustedUploadComponent = UploadHandle;
+  }
+  if (adjustedRemoveStyle === undefined) {
+    adjustedRemoveStyle = null;
+  }
+  if (adjustedRemoveLabel === undefined) {
+    adjustedRemoveLabel = 'Delete';
   }
   if (adjustedUploadStyle === undefined) {
     adjustedUploadStyle = null;
@@ -332,9 +364,12 @@ const getProps = (props) => {
     multiple: isMultiple,
     LabelWidget: widgets.LabelWidget,
     fileStyle: adjustedFileStyle,
+    RemoveComponent: adjustedRemoveComponent,
     UploadComponent: adjustedUploadComponent,
-    uploadLabel: adjustedUploadLabel,
+    removeStyle: adjustedRemoveStyle,
+    removeLabel: adjustedRemoveLabel,
     uploadStyle: adjustedUploadStyle,
+    uploadLabel: adjustedUploadLabel,
   };
 };
 
@@ -472,6 +507,23 @@ const useOnAccepted = ({
   return onChange(nextValue, name, {
     nextMeta,
   });
+};
+
+const useOnRemove = ({
+  name,
+  value,
+  onChange,
+  removableFile,
+}) => {
+  const canRemove = value && removableFile;
+  const onRemove = () => {
+    const nextValue = null;
+    const nextMeta = {};
+    onChange(nextValue, name, {
+      nextMeta,
+    });
+  };
+  return [canRemove, onRemove];
 };
 
 const setMeta = (meta, params) => {
@@ -614,7 +666,10 @@ const FileWidget = (props) => {
     fileStyle,
     auto,
     dropzoneStyle,
+    RemoveComponent,
     UploadComponent,
+    removeStyle,
+    removeLabel,
     uploadStyle,
     uploadLabel,
     ...nextProps
@@ -625,6 +680,7 @@ const FileWidget = (props) => {
   const onChange = useOnChange(params);
   const onMeta = useOnMeta(params);
   const onAccepted = useOnAccepted({ ...params, onChange });
+  const [canRemove, onRemove] = useOnRemove({ ...params, onChange });
 
   const onDropAnchor = useOnDrop({ ...params, onMeta, onAccepted });
   const onDrop = useCallback(
@@ -725,6 +781,15 @@ const FileWidget = (props) => {
                   </FileArea>
                 ) : null}
               </View>
+              {canRemove ? (
+                <RemoveComponent
+                  {...props}
+                  auto
+                  removeStyle={[styles.removeSingle, removeStyle]}
+                  removeLabel={removeLabel}
+                  onRemovePress={onRemove}
+                />
+              ) : null}
               <UploadComponent
                 {...props}
                 auto
@@ -762,6 +827,7 @@ FileWidget.propTypes = {
   ProgressComponent: PropTypes.elementType,
   downloadable: PropTypes.bool,
   downloadBasepath: PropTypes.string,
+  removableFile: PropTypes.bool,
 };
 
 FileWidget.defaultProps = {
@@ -781,6 +847,7 @@ FileWidget.defaultProps = {
   ProgressComponent: undefined,
   downloadable: undefined,
   downloadBasepath: undefined,
+  removableFile: false,
 };
 
 export default FileWidget;
