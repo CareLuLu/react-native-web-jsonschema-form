@@ -127,6 +127,8 @@ const getProps = (props) => {
   } = props;
 
   const dropzoneStyle = [];
+  const options = uiSchema['ui:options'] || {};
+  const removable = options.removable !== false;
   let isMultiple = multiple;
   let adjustedNameAttribute;
   let adjustedPathAttribute;
@@ -141,9 +143,9 @@ const getProps = (props) => {
   let adjustedEditComponent = EditComponent;
   let adjustedProgressComponent = ProgressComponent;
   let adjustedRemoveComponent = RemoveComponent;
-  let adjustedUploadComponent = UploadComponent;
   let adjustedRemoveStyle = removeStyle;
   let adjustedRemoveLabel = removeLabel;
+  let adjustedUploadComponent = UploadComponent;
   let adjustedUploadStyle = uploadStyle;
   let adjustedUploadLabel = uploadLabel;
 
@@ -157,10 +159,6 @@ const getProps = (props) => {
       adjustedRemoveComponent
       || (uiSchema['ui:options'] && uiSchema['ui:options'].RemoveComponent)
     );
-    adjustedUploadComponent = (
-      adjustedUploadComponent
-      || (uiSchema['ui:options'] && uiSchema['ui:options'].UploadComponent)
-    );
     adjustedRemoveStyle = (
       adjustedRemoveStyle
       || (uiSchema['ui:options'] && uiSchema['ui:options'].removeStyle)
@@ -168,6 +166,10 @@ const getProps = (props) => {
     adjustedRemoveLabel = (
       adjustedRemoveLabel
       || (uiSchema['ui:options'] && uiSchema['ui:options'].removeLabel)
+    );
+    adjustedUploadComponent = (
+      adjustedUploadComponent
+      || (uiSchema['ui:options'] && uiSchema['ui:options'].UploadComponent)
     );
     adjustedUploadStyle = (
       adjustedUploadStyle
@@ -209,14 +211,14 @@ const getProps = (props) => {
   if (!adjustedRemoveComponent) {
     adjustedRemoveComponent = RemoveHandle;
   }
-  if (!adjustedUploadComponent) {
-    adjustedUploadComponent = UploadHandle;
-  }
   if (adjustedRemoveStyle === undefined) {
     adjustedRemoveStyle = null;
   }
   if (adjustedRemoveLabel === undefined) {
     adjustedRemoveLabel = 'Delete';
+  }
+  if (!adjustedUploadComponent) {
+    adjustedUploadComponent = UploadHandle;
   }
   if (adjustedUploadStyle === undefined) {
     adjustedUploadStyle = null;
@@ -357,6 +359,7 @@ const getProps = (props) => {
   return {
     ...props,
     title,
+    removable,
     fileSchema,
     dropzoneStyle,
     propertyUiSchema,
@@ -513,9 +516,9 @@ const useOnRemove = ({
   name,
   value,
   onChange,
-  removableFile,
+  removable,
 }) => {
-  const canRemove = value && removableFile;
+  const canRemove = value && removable;
   const onRemove = () => {
     const nextValue = null;
     const nextMeta = {};
@@ -827,7 +830,6 @@ FileWidget.propTypes = {
   ProgressComponent: PropTypes.elementType,
   downloadable: PropTypes.bool,
   downloadBasepath: PropTypes.string,
-  removableFile: PropTypes.bool,
 };
 
 FileWidget.defaultProps = {
@@ -847,7 +849,6 @@ FileWidget.defaultProps = {
   ProgressComponent: undefined,
   downloadable: undefined,
   downloadBasepath: undefined,
-  removableFile: false,
 };
 
 export default FileWidget;

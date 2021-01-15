@@ -9,14 +9,10 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingTop: 11,
   },
-  fullWidth: {
-    width: '100%',
-  },
 });
 
 const RemoveHandle = ({
   theme,
-  auto,
   onRemovePress,
   removeLabel,
   removeStyle,
@@ -24,13 +20,9 @@ const RemoveHandle = ({
 }) => (
   <Link
     {...props}
-    auto={auto}
+    auto
     onPress={onRemovePress}
-    style={[
-      styles.handle,
-      auto ? null : styles.fullWidth,
-      removeStyle,
-    ]}
+    style={[styles.handle, removeStyle]}
     type={theme.colors.primary}
   >
     {removeLabel}
@@ -38,7 +30,6 @@ const RemoveHandle = ({
 );
 
 RemoveHandle.propTypes = {
-  auto: PropTypes.bool,
   theme: PropTypes.shape().isRequired,
   onRemovePress: PropTypes.func.isRequired,
   removeLabel: PropTypes.node.isRequired,
@@ -47,7 +38,6 @@ RemoveHandle.propTypes = {
 
 RemoveHandle.defaultProps = {
   removeStyle: null,
-  auto: false,
 };
 
 export default RemoveHandle;
