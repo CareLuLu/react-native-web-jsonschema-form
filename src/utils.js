@@ -365,6 +365,13 @@ export const getTitleFormat = (schema, uiSchema) => {
   if (format === undefined) {
     format = false;
   }
+  if (format && !isString(format)) {
+    if (schema.type !== 'object') {
+      format = FIELD_TITLE;
+    } else {
+      format = false;
+    }
+  }
   return format;
 };
 
