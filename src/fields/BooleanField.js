@@ -64,7 +64,19 @@ class BooleanField extends AbstractField {
         </React.Fragment>
       );
     }
-    return Widget;
+
+    const ParsedWidget = (props) => {
+      const { onChange } = props;
+      const wrappedOnChange = (value, ...args) => {
+        if (value !== trueValue) {
+          return onChange(falseValue, ...args);
+        }
+        return onChange(trueValue, ...args);
+      };
+
+      return <Widget {...props} onChange={wrappedOnChange} />;
+    };
+    return ParsedWidget;
   }
 }
 
