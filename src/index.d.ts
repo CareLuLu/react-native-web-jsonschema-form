@@ -24,13 +24,15 @@ declare module "react-native-web-jsonschema-form" {
 
   export declare function Form<T extends Record<string,unknown>>(props: {
     formData: T,
-    schema: Record<string,unknown>,
-    uiSchema: Record<string,unknown>,
-    widgets: Record<string, JSX.Element>,
-    HeadingComponent: JSX.Element,
-    SubmitButton: JSX.Element,
+    schema: Record<string, unknown>,
+    uiSchema: Record<string, unknown>,
+    widgets: Record<string, (props:any) => JSX.Element>,
+    HeadingComponent: (props:any) => JSX.Element,
+    SubmitButton: (props:any) => JSX.Element,
     onChange: (event: FormChangeEvent<T>) => Promise<void>
     onSubmit: (event: FormSubmitEvent<T>) => Promise<void>
   }): JSX.Element;
+
+  export default Form;
 
 }
