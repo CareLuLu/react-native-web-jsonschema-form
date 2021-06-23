@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { get } from 'lodash';
 import AbstractField from './AbstractField';
+import { getComponent } from '../utils';
 
 const styles = StyleSheet.create({
   padding: {
@@ -63,6 +64,11 @@ class BooleanField extends AbstractField {
           />
         </React.Fragment>
       );
+    } else {
+      Widget = getComponent(widgetName, 'Widget', widgets);
+      if (!Widget) {
+        Widget = this.getDefaultWidget() || (() => null);
+      }
     }
 
     const ParsedWidget = (props) => {
