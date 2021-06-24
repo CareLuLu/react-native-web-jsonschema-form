@@ -2,9 +2,16 @@ declare module "react-native-web-jsonschema-form" {
   type BaseFormData = Record<string, unknown>;
   type JsonSchema = Record<string, unknown>;
   type Uichema = Record<string, unknown>;
-  export interface FormEvent {
+  export class FormEvent {
     name: string;
-    prevented: boolean;
+    params: Record<string, unknown>;
+    private prevented: boolean;
+
+    constructor(name, params = {});
+
+    preventDefault(): void;
+
+    isDefaultPrevented(): boolean;
   }
   export interface FormChangeEvent<T extends BaseFormData> extends FormEvent {
     name: "change";
