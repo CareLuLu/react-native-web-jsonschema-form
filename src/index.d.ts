@@ -1,7 +1,7 @@
+import { JsonSchema } from "type-jsonschema";
 declare module "react-native-web-jsonschema-form" {
   type BaseFormData = Record<string, unknown>;
-  type JsonSchema = Record<string, unknown>;
-  type UiSchema = Record<string, unknown>;
+  export type UiSchema = Record<string, unknown>;
   type MetaSchema = Record<string, unknown>;
   type ErrorSchema = Record<string, unknown>;
 
@@ -29,6 +29,10 @@ declare module "react-native-web-jsonschema-form" {
     };
   }
 
+  export interface FormCancelEvent<T extends BaseFormData> extends FormEvent {
+    name: "cancel";
+  }
+
   export interface FormSubmitEvent<T extends BaseFormData> extends FormEvent {
     name: "submit";
     params: {
@@ -52,7 +56,7 @@ declare module "react-native-web-jsonschema-form" {
     onError?: (event: FormEvent) => Promise<void>;
     buttonPosition?: "left" | "right" | "center";
     cancelButton?: bool | string;
-    CancelButton?: JSX.Element;
+    CancelButton?: React.Component | React.FunctionComponent;
     submitButton?: bool | string;
     SubmitButton?: React.Component | React.FunctionComponent;
     scroller?: Record<string, unknown>;
@@ -62,7 +66,7 @@ declare module "react-native-web-jsonschema-form" {
   }
   declare function JsonSchemaForm<T extends BaseFormData>(
     props: JsonSchemaFormProps<T>
-  ): JSX.Element;
+  ): React.ReactElement<any, any>;
 
   // This does not work for some reason
   // declare class JsonSchemaForm<T extends BaseFormData> extends React.Component {
