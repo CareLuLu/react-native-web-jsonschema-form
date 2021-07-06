@@ -180,8 +180,13 @@ declare module 'react-native-web-jsonschema-form' {
       values: T;
     };
   }
-
-  interface JsonSchemaFormProps<T extends BaseFormData> {
+  export interface WidgetProps<T extends BaseFormData> {
+    formData?: T;
+    name?: string;
+    readonly?: boolean;
+    [additionalWidgetProperties: string]: unknown;
+  }
+  export interface JsonSchemaFormProps<T extends BaseFormData> {
     name?: string;
     schema?: JsonSchema;
     uiSchema?: UiSchema;
@@ -201,7 +206,7 @@ declare module 'react-native-web-jsonschema-form' {
     submitButton?: bool | string;
     SubmitButton?: React.Component | React.FunctionComponent;
     scroller?: Record<string, unknown>;
-    widgets?: Record<string, (props: any) => JSX.Element>;
+    widgets?: Record<string, (props: WidgetProps<T>) => JSX.Element>;
     filterEmptyValues?: boolean;
     insideClickRegex?: RegExp;
     // This is custom for app (not part of the Carelulu, remove this before final commit)
