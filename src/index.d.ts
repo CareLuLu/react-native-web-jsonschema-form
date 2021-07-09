@@ -180,19 +180,13 @@ declare module 'react-native-web-jsonschema-form' {
       values: T;
     };
   }
-  export interface WidgetProps<T extends BaseFormData> {
-    formData?: T;
-    name?: string;
-    readonly?: boolean;
-    [additionalWidgetProperties: string]: unknown;
-  }
   export interface JsonSchemaFormProps<T extends BaseFormData> {
     name?: string;
-    schema?: JsonSchema;
-    uiSchema?: UiSchema;
+    schema: JsonSchema;
+    uiSchema: UiSchema;
     metaSchema?: MetaSchema;
     errorSchema?: ErrorSchema;
-    formData?: T;
+    formData: T;
     children?: ReactChild | ReactChild[];
     onRef?: () => {};
     onChange?: (event: FormChangeEvent<T>) => Promise<void>;
@@ -211,6 +205,18 @@ declare module 'react-native-web-jsonschema-form' {
     insideClickRegex?: RegExp;
     // This is custom for app (not part of the Carelulu, remove this before final commit)
     HeadingComponent?: any;
+  }
+  export interface WidgetProps<T extends BaseFormData> extends JsonSchemaFormProps<T> {
+    id: string;
+    placeholder: string;
+    readonly: boolean;
+    disabled: boolean;
+    value: any;
+    errors: any;
+    metaSchema: MetaSchema;
+    errorSchema: ErrorSchema;
+    hasError: boolean;
+    [additionalWidgetProperties: string]: unknown;
   }
 
   declare class JsonSchemaForm<T extends BaseFormData> extends React.Component<
