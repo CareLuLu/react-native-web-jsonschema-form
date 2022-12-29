@@ -971,10 +971,10 @@ chokidar@^3.4.0:
   optionalDependencies:
     fsevents "~2.1.2"
 
-cloc@2.10.0:
-  version "2.10.0"
-  resolved "https://registry.yarnpkg.com/cloc/-/cloc-2.10.0.tgz#1dbd3755a9ca8d426e9222b2e8a4feaecf855837"
-  integrity sha512-iHYXbhKNF+Wy6TNxHozD8WkW0qbZ7WKecyFntyFron4BF4SOX6hp7HEuNJ8iVnjimnf3xpLd81kMwoRj2WiCoA==
+cloc@2.11.0:
+  version "2.11.0"
+  resolved "https://registry.yarnpkg.com/cloc/-/cloc-2.11.0.tgz#f6f965b80e48d78cf7f524a8ade1902d5bcbf923"
+  integrity sha512-+mxuCHo7ESOQadlsyMjmPZ4hGBtvQzmNGHfLdBNvXKbnRhtmOTslU4XF2cyFSaOCHaaF26ba2CGjU6lpeIFB0w==
 
 clone-deep@^4.0.1:
   version "4.0.1"
