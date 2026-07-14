@@ -1,5 +1,6 @@
 {
   "name": "react-native-web-jsonschema-form",
+  "description": "Render customizable forms using JSON schema for responsive websites and Expo apps (both Android and iOS).",
   "version": "4.0.0",
   "private": false,
   "main": "index.js",
